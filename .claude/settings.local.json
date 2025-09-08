@@ -18,7 +18,8 @@
       "Read(/D:\\Development\\flutter_projects\\notifications_sounds\\lib\\core\\services/**)",
       "Bash(git commit:*)",
       "Bash(flutter build:*)",
-      "Bash(dart analyze:*)"
+      "Bash(dart analyze:*)",
+      "Bash(dart:*)"
     ],
     "deny": [],
     "ask": []

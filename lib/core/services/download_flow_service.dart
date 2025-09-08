@@ -165,6 +165,7 @@ class DownloadFlowService {
     );
 
     print('DEBUG: Iniciando descarga para: $title');
+    print('DEBUG: Tone data - id: $toneId, requiresAttribution: ${requiresAttribution ?? false}, attributionText: $attributionText'); // Debug
     try {
       final result = await downloadsProvider.downloadTone(toneForDownload);
       print('DEBUG: Resultado de descarga: ${result.isSuccess}');
