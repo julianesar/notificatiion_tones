@@ -30,6 +30,32 @@ class DownloadFlowService {
     final downloadsProvider = context.read<DownloadsProvider>();
     final permissionsService = context.read<PermissionsService>();
     print('DEBUG: Providers y referencias obtenidas correctamente');
+    
+    // Verificar si el tono ya está descargado
+    if (downloadsProvider.isDownloaded(toneId)) {
+      print('DEBUG: Tono ya descargado, mostrando mensaje');
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          content: Text('$title ya está descargado'),
+          backgroundColor: Colors.blue[800],
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+          action: SnackBarAction(
+            label: 'Ver',
+            textColor: Colors.white,
+            onPressed: () {
+              navigator.pushAndRemoveUntil(
+                MaterialPageRoute(
+                  builder: (context) => const MainScreen(initialIndex: 2),
+                ),
+                (route) => route.isFirst,
+              );
+            },
+          ),
+        ),
+      );
+      return;
+    }
 
     try {
       // 1. Verificar primero si ya tenemos los permisos

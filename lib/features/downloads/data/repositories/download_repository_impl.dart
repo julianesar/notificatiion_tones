@@ -59,7 +59,7 @@ class DownloadRepositoryImpl implements DownloadRepository {
         }
       }
 
-      final fileName = _generateFileName(tone.title, tone.url);
+      final fileName = _generateFileName(tone.id, tone.title, tone.url);
 
       final downloadInfo = DownloadInfoModel(
         id: downloadId,
@@ -253,7 +253,7 @@ class DownloadRepositoryImpl implements DownloadRepository {
     return null;
   }
 
-  String _generateFileName(String title, String url) {
+  String _generateFileName(String toneId, String title, String url) {
     String cleanTitle = title
         .replaceAll(RegExp(r'[^\w\s-]'), '')
         .replaceAll(RegExp(r'\s+'), '_')
@@ -268,7 +268,8 @@ class DownloadRepositoryImpl implements DownloadRepository {
       extension = '.mp3';
     }
     
-    return '$cleanTitle$extension';
+    // Incluir el ID del tono al inicio del nombre del archivo
+    return '${toneId}_$cleanTitle$extension';
   }
 
   Future<void> _ensureDirectoryExists(String directoryPath) async {

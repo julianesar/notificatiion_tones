@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import '../../core/services/audio_service.dart';
 import '../../core/services/download_flow_service.dart';
 import '../../features/favorites/presentation/providers/favorites_provider.dart';
+import '../../features/downloads/presentation/providers/downloads_provider.dart';
+import '../../screens/main_screen.dart';
 
 class ToneCardWidget extends StatelessWidget {
   final String toneId;
@@ -181,6 +183,9 @@ class ToneCardWidget extends StatelessWidget {
   }
 
   void _showOptionsMenu(BuildContext context) {
+    // Refrescar el estado de descargas antes de mostrar el modal
+    context.read<DownloadsProvider>().refreshDownloadedFiles();
+    
     showModalBottomSheet(
       context: context,
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -214,24 +219,65 @@ class ToneCardWidget extends StatelessWidget {
                   },
                 ),
               if (showDownloadOption)
-                ListTile(
-                  leading: const Icon(Icons.download),
-                  title: const Text('Descargar'),
-                  onTap: () async {
-                    // Cerrar el modal primero
-                    Navigator.pop(context);
-                    // Usar un pequeño delay para permitir que el modal se cierre completamente
-                    await Future.delayed(const Duration(milliseconds: 100));
-                    if (context.mounted) {
-                      await DownloadFlowService.downloadToneWithPermissions(
-                        context: context,
-                        toneId: toneId,
-                        title: title,
-                        url: url,
-                        requiresAttribution: requiresAttribution,
-                        attributionText: attributionText,
-                      );
-                    }
+                Consumer<DownloadsProvider>(
+                  builder: (context, downloadsProvider, child) {
+                    final isDownloaded = downloadsProvider.isDownloaded(toneId);
+                    final isDownloading = downloadsProvider.isDownloading(toneId);
+                    
+                    return ListTile(
+                      leading: Icon(
+                        isDownloaded 
+                            ? Icons.download_done 
+                            : isDownloading 
+                                ? Icons.downloading 
+                                : Icons.download,
+                        color: isDownloaded 
+                            ? Colors.green 
+                            : isDownloading 
+                                ? Colors.blue 
+                                : null,
+                      ),
+                      title: Text(
+                        isDownloaded 
+                            ? 'Ya descargado' 
+                            : isDownloading 
+                                ? 'Descargando...' 
+                                : 'Descargar',
+                      ),
+                      subtitle: isDownloaded 
+                          ? const Text('Toca para ver descargas') 
+                          : null,
+                      enabled: !isDownloading,
+                      onTap: isDownloaded 
+                          ? () {
+                              Navigator.pop(context);
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const MainScreen(initialIndex: 2),
+                                ),
+                                (route) => route.isFirst,
+                              );
+                            }
+                          : isDownloading 
+                              ? null
+                              : () async {
+                                  // Cerrar el modal primero
+                                  Navigator.pop(context);
+                                  // Usar un pequeño delay para permitir que el modal se cierre completamente
+                                  await Future.delayed(const Duration(milliseconds: 100));
+                                  if (context.mounted) {
+                                    await DownloadFlowService.downloadToneWithPermissions(
+                                      context: context,
+                                      toneId: toneId,
+                                      title: title,
+                                      url: url,
+                                      requiresAttribution: requiresAttribution,
+                                      attributionText: attributionText,
+                                    );
+                                  }
+                                },
+                    );
                   },
                 ),
               if (showShareOption)

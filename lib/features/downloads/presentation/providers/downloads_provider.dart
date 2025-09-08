@@ -57,7 +57,9 @@ class DownloadsProvider extends ChangeNotifier {
   }
 
   bool isDownloaded(String toneId) {
-    return _downloadedToneIds.contains(toneId);
+    final result = _downloadedToneIds.contains(toneId);
+    print('DEBUG: isDownloaded($toneId) = $result. Downloaded IDs: $_downloadedToneIds'); // Debug
+    return result;
   }
 
   double getDownloadProgress(String toneId) {
@@ -271,8 +273,10 @@ class DownloadsProvider extends ChangeNotifier {
         
         if (download.status == DownloadStatus.completed) {
           final toneId = _extractToneIdFromFileName(download.fileName);
+          print('DEBUG: Archivo ${download.fileName} -> toneId: $toneId'); // Debug
           if (toneId.isNotEmpty) {
             _downloadedToneIds.add(toneId);
+            print('DEBUG: Agregado toneId $toneId a downloadedToneIds'); // Debug
           }
         } else if (download.status == DownloadStatus.downloading ||
                    download.status == DownloadStatus.waiting) {
@@ -293,7 +297,13 @@ class DownloadsProvider extends ChangeNotifier {
   }
 
   String _extractToneIdFromFileName(String fileName) {
-    return fileName.split('_').first;
+    // El nombre del archivo tiene formato: toneId_cleanTitle.extension
+    // Extraer solo el toneId (primera parte antes del primer _)
+    final parts = fileName.split('_');
+    if (parts.isNotEmpty) {
+      return parts.first;
+    }
+    return '';
   }
 
   @override
