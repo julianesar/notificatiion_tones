@@ -13,7 +13,7 @@ abstract class FavoritesLocalDS {
 class FavoritesLocalDSImpl implements FavoritesLocalDS {
   static const String _tableName = 'favorites';
   static const String _databaseName = 'favorites.db';
-  static const int _databaseVersion = 1;
+  static const int _databaseVersion = 2;
   
   Database? _database;
 
@@ -31,6 +31,7 @@ class FavoritesLocalDSImpl implements FavoritesLocalDS {
       path,
       version: _databaseVersion,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -40,9 +41,22 @@ class FavoritesLocalDSImpl implements FavoritesLocalDS {
         tone_id TEXT PRIMARY KEY,
         title TEXT NOT NULL,
         url TEXT NOT NULL,
-        created_at INTEGER NOT NULL
+        created_at INTEGER NOT NULL,
+        requires_attribution INTEGER NOT NULL DEFAULT 0,
+        attribution_text TEXT
       )
     ''');
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('''
+        ALTER TABLE $_tableName ADD COLUMN requires_attribution INTEGER NOT NULL DEFAULT 0
+      ''');
+      await db.execute('''
+        ALTER TABLE $_tableName ADD COLUMN attribution_text TEXT
+      ''');
+    }
   }
 
   @override

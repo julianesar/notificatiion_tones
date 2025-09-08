@@ -43,9 +43,15 @@ class FavoritesProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> toggleFavoriteStatus(String toneId, String title, String url) async {
+  Future<bool> toggleFavoriteStatus(
+    String toneId, 
+    String title, 
+    String url, {
+    bool requiresAttribution = false,
+    String? attributionText,
+  }) async {
     try {
-      final newStatus = await _toggleFavorite(toneId, title, url);
+      final newStatus = await _toggleFavorite(toneId, title, url, requiresAttribution: requiresAttribution, attributionText: attributionText);
       _favoriteStatus[toneId] = newStatus;
       
       // Reload favorites to keep the list updated

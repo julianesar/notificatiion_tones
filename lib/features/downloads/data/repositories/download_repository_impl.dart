@@ -68,6 +68,8 @@ class DownloadRepositoryImpl implements DownloadRepository {
         localPath: '',
         status: DownloadStatus.waiting,
         createdAt: DateTime.now(),
+        requiresAttribution: tone.requiresAttribution,
+        attributionText: tone.attributionText,
       );
 
       await _localDataSource.saveDownload(downloadInfo);

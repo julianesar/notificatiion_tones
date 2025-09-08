@@ -16,7 +16,13 @@ class ToggleFavorite {
     _isFavorite = IsFavorite(_repository);
   }
 
-  Future<bool> call(String toneId, String title, String url) async {
+  Future<bool> call(
+    String toneId, 
+    String title, 
+    String url, {
+    bool requiresAttribution = false,
+    String? attributionText,
+  }) async {
     final isFav = await _isFavorite.call(toneId);
     
     if (isFav) {
@@ -28,6 +34,8 @@ class ToggleFavorite {
         title: title,
         url: url,
         createdAt: DateTime.now(),
+        requiresAttribution: requiresAttribution,
+        attributionText: attributionText,
       );
       await _addFavorite.call(favorite);
       return true;

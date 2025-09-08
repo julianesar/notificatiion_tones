@@ -13,6 +13,8 @@ class DownloadInfoModel extends DownloadInfo {
     super.errorMessage,
     required super.createdAt,
     super.completedAt,
+    super.requiresAttribution = false,
+    super.attributionText,
   });
 
   factory DownloadInfoModel.fromJson(Map<String, dynamic> json) {
@@ -30,6 +32,8 @@ class DownloadInfoModel extends DownloadInfo {
       completedAt: json['completedAt'] != null
           ? DateTime.parse(json['completedAt'] as String)
           : null,
+      requiresAttribution: json['requiresAttribution'] == true,
+      attributionText: json['attributionText'] as String?,
     );
   }
 
@@ -46,9 +50,12 @@ class DownloadInfoModel extends DownloadInfo {
       'errorMessage': errorMessage,
       'createdAt': createdAt.toIso8601String(),
       'completedAt': completedAt?.toIso8601String(),
+      'requiresAttribution': requiresAttribution,
+      'attributionText': attributionText,
     };
   }
 
+  @override
   DownloadInfoModel copyWith({
     String? id,
     String? fileName,
@@ -61,6 +68,8 @@ class DownloadInfoModel extends DownloadInfo {
     String? errorMessage,
     DateTime? createdAt,
     DateTime? completedAt,
+    bool? requiresAttribution,
+    String? attributionText,
   }) {
     return DownloadInfoModel(
       id: id ?? this.id,
@@ -74,6 +83,8 @@ class DownloadInfoModel extends DownloadInfo {
       errorMessage: errorMessage ?? this.errorMessage,
       createdAt: createdAt ?? this.createdAt,
       completedAt: completedAt ?? this.completedAt,
+      requiresAttribution: requiresAttribution ?? this.requiresAttribution,
+      attributionText: attributionText ?? this.attributionText,
     );
   }
 }

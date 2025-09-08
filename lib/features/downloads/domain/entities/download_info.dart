@@ -21,6 +21,8 @@ class DownloadInfo {
   final String? errorMessage;
   final DateTime createdAt;
   final DateTime? completedAt;
+  final bool requiresAttribution;
+  final String? attributionText;
 
   const DownloadInfo({
     required this.id,
@@ -34,6 +36,8 @@ class DownloadInfo {
     this.errorMessage,
     required this.createdAt,
     this.completedAt,
+    this.requiresAttribution = false,
+    this.attributionText,
   });
 
   DownloadInfo copyWith({
@@ -48,6 +52,8 @@ class DownloadInfo {
     String? errorMessage,
     DateTime? createdAt,
     DateTime? completedAt,
+    bool? requiresAttribution,
+    String? attributionText,
   }) {
     return DownloadInfo(
       id: id ?? this.id,
@@ -61,6 +67,8 @@ class DownloadInfo {
       errorMessage: errorMessage ?? this.errorMessage,
       createdAt: createdAt ?? this.createdAt,
       completedAt: completedAt ?? this.completedAt,
+      requiresAttribution: requiresAttribution ?? this.requiresAttribution,
+      attributionText: attributionText ?? this.attributionText,
     );
   }
 
@@ -76,5 +84,5 @@ class DownloadInfo {
 
   @override
   String toString() =>
-      'DownloadInfo(id: $id, fileName: $fileName, status: $status, progress: $progress)';
+      'DownloadInfo(id: $id, fileName: $fileName, status: $status, progress: $progress, requiresAttribution: $requiresAttribution, attributionText: $attributionText)';
 }

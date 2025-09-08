@@ -6,6 +6,8 @@ class FavoriteModel extends Favorite {
     required super.title,
     required super.url,
     required super.createdAt,
+    super.requiresAttribution = false,
+    super.attributionText,
   });
 
   factory FavoriteModel.fromMap(Map<String, dynamic> map) {
@@ -14,6 +16,8 @@ class FavoriteModel extends Favorite {
       title: map['title'] as String,
       url: map['url'] as String,
       createdAt: DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int),
+      requiresAttribution: map['requires_attribution'] == 1,
+      attributionText: map['attribution_text'] as String?,
     );
   }
 
@@ -23,6 +27,8 @@ class FavoriteModel extends Favorite {
       title: favorite.title,
       url: favorite.url,
       createdAt: favorite.createdAt,
+      requiresAttribution: favorite.requiresAttribution,
+      attributionText: favorite.attributionText,
     );
   }
 
@@ -32,6 +38,8 @@ class FavoriteModel extends Favorite {
       'title': title,
       'url': url,
       'created_at': createdAt.millisecondsSinceEpoch,
+      'requires_attribution': requiresAttribution ? 1 : 0,
+      'attribution_text': attributionText,
     };
   }
 
@@ -41,6 +49,8 @@ class FavoriteModel extends Favorite {
       title: title,
       url: url,
       createdAt: createdAt,
+      requiresAttribution: requiresAttribution,
+      attributionText: attributionText,
     );
   }
 }

@@ -11,12 +11,14 @@ class TonePlayerPage extends StatefulWidget {
   final Tone tone;
   final String categoryTitle;
   final List<Tone> tones;
+  final bool isFromDownloads;
 
   const TonePlayerPage({
     super.key,
     required this.tone,
     required this.categoryTitle,
     required this.tones,
+    this.isFromDownloads = false,
   });
 
   @override
@@ -515,18 +517,19 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                 ),
               ),
               const SizedBox(height: 20),
-              ListTile(
-                leading: const Icon(Icons.download),
-                title: const Text('Descargar'),
-                onTap: () async {
-                  Navigator.pop(context);
-                  // Usar un pequeño delay para permitir que el modal se cierre completamente
-                  await Future.delayed(const Duration(milliseconds: 100));
-                  if (mounted) {
-                    await _downloadToneWithFeedback();
-                  }
-                },
-              ),
+              if (!widget.isFromDownloads)
+                ListTile(
+                  leading: const Icon(Icons.download),
+                  title: const Text('Descargar'),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    // Usar un pequeño delay para permitir que el modal se cierre completamente
+                    await Future.delayed(const Duration(milliseconds: 100));
+                    if (mounted) {
+                      await _downloadToneWithFeedback();
+                    }
+                  },
+                ),
               ListTile(
                 leading: const Icon(Icons.share),
                 title: const Text('Compartir'),
@@ -535,7 +538,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                   _showSnackBar(context, 'Compartiendo ${_currentTone.title}');
                 },
               ),
-              if (_currentTone.requiresAttribution) ...[
+              if (_currentTone.requiresAttribution && _currentTone.attributionText != null) ...[
                 ListTile(
                   leading: const Icon(Icons.info_outline),
                   title: const Text('Información de atribución'),

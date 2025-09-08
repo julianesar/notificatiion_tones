@@ -6,12 +6,16 @@ class Favorite {
   final String title;
   final String url;
   final DateTime createdAt;
+  final bool requiresAttribution;
+  final String? attributionText;
 
   const Favorite({
     required this.toneId,
     required this.title,
     required this.url,
     required this.createdAt,
+    this.requiresAttribution = false,
+    this.attributionText,
   });
 
   @override
@@ -26,5 +30,5 @@ class Favorite {
 
   @override
   String toString() =>
-      'Favorite(toneId: $toneId, title: $title, url: $url, createdAt: $createdAt)';
+      'Favorite(toneId: $toneId, title: $title, url: $url, createdAt: $createdAt, requiresAttribution: $requiresAttribution, attributionText: $attributionText)';
 }

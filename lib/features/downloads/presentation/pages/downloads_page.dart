@@ -3,7 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/downloads_provider.dart';
 import '../../domain/entities/download_info.dart';
-import 'package:just_audio/just_audio.dart';
+import '../../../../shared/widgets/tone_card_widget.dart';
+import '../../../tones/domain/entities/tone.dart';
+import '../../../tones/presentation/pages/tone_player_page.dart';
 
 class DownloadsPage extends StatefulWidget {
   const DownloadsPage({super.key});
@@ -13,52 +15,12 @@ class DownloadsPage extends StatefulWidget {
 }
 
 class _DownloadsPageState extends State<DownloadsPage> {
-  final AudioPlayer _audioPlayer = AudioPlayer();
-  String? _currentlyPlayingFile;
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<DownloadsProvider>().loadDownloads();
     });
-  }
-
-  @override
-  void dispose() {
-    _audioPlayer.dispose();
-    super.dispose();
-  }
-
-  void _togglePlayback(String filePath) async {
-    try {
-      HapticFeedback.selectionClick();
-      
-      if (_currentlyPlayingFile == filePath && _audioPlayer.playing) {
-        await _audioPlayer.pause();
-        setState(() {
-          _currentlyPlayingFile = null;
-        });
-      } else {
-        await _audioPlayer.setFilePath(filePath);
-        await _audioPlayer.play();
-        setState(() {
-          _currentlyPlayingFile = filePath;
-        });
-      }
-    } catch (e) {
-      HapticFeedback.heavyImpact();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error reproduciendo audio: $e'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      }
-    }
   }
 
   @override
@@ -208,10 +170,22 @@ class _DownloadsPageState extends State<DownloadsPage> {
                     delegate: SliverChildBuilderDelegate(
                       (context, index) => Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                        child: _CompletedDownloadTile(
-                          download: completedDownloads[index],
-                          isPlaying: _currentlyPlayingFile == completedDownloads[index].localPath,
-                          onPlayToggle: () => _togglePlayback(completedDownloads[index].localPath),
+                        child: ToneCardWidget(
+                          toneId: completedDownloads[index].localPath,
+                          title: completedDownloads[index].fileName,
+                          url: completedDownloads[index].localPath,
+                          subtitle: 'Descargado ${_formatDate(completedDownloads[index].completedAt!)}',
+                          requiresAttribution: completedDownloads[index].requiresAttribution,
+                          attributionText: completedDownloads[index].attributionText,
+                          showFavoriteButton: false,
+                          showDeleteButtonInTrailing: true, // Mostrar botón de borrar directo en el trailing
+                          // Modal options - mostrar todas las opciones aplicables
+                          showOpenPlayerOption: true,
+                          showDownloadOption: false, // Ya está descargado
+                          showShareOption: true,
+                          showDeleteOption: true,
+                          showAttributionOption: true,
+                          onTap: () => _openLocalPlayer(context, completedDownloads[index]),
                           onDelete: () => _confirmDelete(context, completedDownloads[index]),
                         ),
                       ),
@@ -342,6 +316,44 @@ class _DownloadsPageState extends State<DownloadsPage> {
       ),
     );
   }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inDays > 0) {
+      return 'hace ${difference.inDays} ${difference.inDays == 1 ? 'día' : 'días'}';
+    } else if (difference.inHours > 0) {
+      return 'hace ${difference.inHours} ${difference.inHours == 1 ? 'hora' : 'horas'}';
+    } else if (difference.inMinutes > 0) {
+      return 'hace ${difference.inMinutes} ${difference.inMinutes == 1 ? 'minuto' : 'minutos'}';
+    } else {
+      return 'hace un momento';
+    }
+  }
+
+  void _openLocalPlayer(BuildContext context, DownloadInfo download) {
+    // Crear un objeto Tone temporal para el reproductor usando el archivo local
+    final localTone = Tone(
+      id: download.localPath, // Usar la ruta local como ID
+      title: download.fileName,
+      url: download.localPath, // URL apunta al archivo local
+      requiresAttribution: download.requiresAttribution,
+      attributionText: download.attributionText,
+    );
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TonePlayerPage(
+          tone: localTone,
+          categoryTitle: 'Mis Descargas',
+          tones: [localTone], // Lista con solo este tono
+          isFromDownloads: true,
+        ),
+      ),
+    );
+  }
 }
 
 class _ActiveDownloadTile extends StatelessWidget {
@@ -430,83 +442,5 @@ class _ActiveDownloadTile extends StatelessWidget {
     final downloadedMB = (downloaded / (1024 * 1024)).toStringAsFixed(1);
     final totalMB = (total / (1024 * 1024)).toStringAsFixed(1);
     return '$downloadedMB MB / $totalMB MB';
-  }
-}
-
-class _CompletedDownloadTile extends StatelessWidget {
-  final DownloadInfo download;
-  final bool isPlaying;
-  final VoidCallback onPlayToggle;
-  final VoidCallback onDelete;
-
-  const _CompletedDownloadTile({
-    required this.download,
-    required this.isPlaying,
-    required this.onPlayToggle,
-    required this.onDelete,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: ListTile(
-        leading: Icon(
-          Icons.music_note,
-          color: Theme.of(context).colorScheme.primary,
-        ),
-        title: Text(
-          download.fileName,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        subtitle: Text(
-          'Descargado ${_formatDate(download.completedAt!)}',
-          style: TextStyle(
-            fontSize: 12,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
-              onPressed: onPlayToggle,
-              tooltip: isPlaying ? 'Pausar' : 'Reproducir',
-            ),
-            PopupMenuButton(
-              icon: const Icon(Icons.more_vert),
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  onTap: onDelete,
-                  child: const Row(
-                    children: [
-                      Icon(Icons.delete, size: 20),
-                      SizedBox(width: 8),
-                      Text('Eliminar'),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final difference = now.difference(date);
-
-    if (difference.inDays > 0) {
-      return 'hace ${difference.inDays} ${difference.inDays == 1 ? 'día' : 'días'}';
-    } else if (difference.inHours > 0) {
-      return 'hace ${difference.inHours} ${difference.inHours == 1 ? 'hora' : 'horas'}';
-    } else if (difference.inMinutes > 0) {
-      return 'hace ${difference.inMinutes} ${difference.inMinutes == 1 ? 'minuto' : 'minutos'}';
-    } else {
-      return 'hace un momento';
-    }
   }
 }
