@@ -20,6 +20,7 @@ import 'features/favorites/domain/usecases/is_favorite.dart';
 import 'features/favorites/domain/usecases/clear_all_favorites.dart';
 import 'features/favorites/presentation/providers/favorites_provider.dart';
 import 'core/services/audio_service.dart';
+import 'core/services/permissions_service.dart';
 import 'core/di/service_locator.dart' as di;
 import 'features/downloads/presentation/providers/downloads_provider.dart';
 
@@ -48,6 +49,9 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider.value(value: AudioService.instance),
+        Provider<PermissionsService>(
+          create: (_) => di.sl<PermissionsService>(),
+        ),
         ChangeNotifierProvider(
           create: (_) => CategoriesProvider(
             GetCategories(

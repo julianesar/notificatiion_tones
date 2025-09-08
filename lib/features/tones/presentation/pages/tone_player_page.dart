@@ -3,9 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../domain/entities/tone.dart';
 import '../../../../core/services/audio_service.dart';
-import '../../../downloads/presentation/providers/downloads_provider.dart';
-import '../../../downloads/domain/entities/download_result.dart';
-import '../../../../screens/main_screen.dart';
+import '../../../../core/services/download_flow_service.dart';
 
 class TonePlayerPage extends StatefulWidget {
   final Tone tone;
@@ -136,85 +134,14 @@ class _TonePlayerPageState extends State<TonePlayerPage>
   }
 
   Future<void> _downloadToneWithFeedback() async {
-    final downloadsProvider = context.read<DownloadsProvider>();
-
-    // Mostrar mensaje inmediato de que la descarga ha comenzado
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Preparando descarga de ${_currentTone.title}'),
-        duration: const Duration(seconds: 1),
-        behavior: SnackBarBehavior.floating,
-      ),
+    await DownloadFlowService.downloadToneWithPermissions(
+      context: context,
+      toneId: _currentTone.id,
+      title: _currentTone.title,
+      url: _currentTone.url,
+      requiresAttribution: _currentTone.requiresAttribution,
+      attributionText: _currentTone.attributionText,
     );
-
-    try {
-      final result = await downloadsProvider.downloadTone(_currentTone);
-
-      if (!mounted) return;
-
-      if (result.isSuccess) {
-        HapticFeedback.lightImpact();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${_currentTone.title} descargado exitosamente'),
-            backgroundColor: Colors.green[800],
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 3),
-            action: SnackBarAction(
-              label: 'Ver',
-              textColor: Colors.white,
-              onPressed: () {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const MainScreen(initialIndex: 2),
-                  ),
-                  (route) => route.isFirst,
-                );
-              },
-            ),
-          ),
-        );
-      } else {
-        HapticFeedback.heavyImpact();
-        String errorMessage = 'Error al descargar el tono';
-
-        switch (result.type) {
-          case DownloadResultType.networkError:
-            errorMessage = 'Error de conexión. Verifica tu internet.';
-            break;
-          case DownloadResultType.storageError:
-            errorMessage = 'Error de almacenamiento. Verifica los permisos.';
-            break;
-          case DownloadResultType.cancelled:
-            errorMessage = 'Descarga cancelada';
-            break;
-          default:
-            errorMessage = result.message ?? 'Error desconocido';
-        }
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
-            backgroundColor: Theme.of(context).colorScheme.error,
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 4),
-          ),
-        );
-      }
-    } catch (e) {
-      if (!mounted) return;
-
-      HapticFeedback.heavyImpact();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error inesperado: $e'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 4),
-        ),
-      );
-    }
   }
 
   void _seekTo(double value) async {

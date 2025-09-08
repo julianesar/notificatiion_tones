@@ -2,11 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../core/services/audio_service.dart';
+import '../../core/services/download_flow_service.dart';
 import '../../features/favorites/presentation/providers/favorites_provider.dart';
-import '../../features/downloads/presentation/providers/downloads_provider.dart';
-import '../../features/downloads/domain/entities/download_result.dart';
-import '../../features/tones/domain/entities/tone.dart';
-import '../../screens/main_screen.dart';
 
 class ToneCardWidget extends StatelessWidget {
   final String toneId;
@@ -17,8 +14,9 @@ class ToneCardWidget extends StatelessWidget {
   final String? attributionText;
   final VoidCallback? onTap;
   final bool showFavoriteButton;
-  final bool showDeleteButtonInTrailing; // Show delete button directly in trailing instead of favorites
-  
+  final bool
+  showDeleteButtonInTrailing; // Show delete button directly in trailing instead of favorites
+
   // Modal options - all configurable
   final bool showOpenPlayerOption;
   final bool showDownloadOption;
@@ -54,8 +52,10 @@ class ToneCardWidget extends StatelessWidget {
       child: Consumer<AudioService>(
         builder: (context, audioService, child) {
           final isPlaying = audioService.isTonePlaying(toneId);
-          final isAudioLoading = audioService.isLoading && audioService.currentlyPlayingId == toneId;
-          
+          final isAudioLoading =
+              audioService.isLoading &&
+              audioService.currentlyPlayingId == toneId;
+
           return ListTile(
             leading: GestureDetector(
               onTap: () => _toggleAudioPlay(context, audioService),
@@ -101,14 +101,18 @@ class ToneCardWidget extends StatelessWidget {
                 if (showFavoriteButton && !showDeleteButtonInTrailing)
                   Consumer<FavoritesProvider>(
                     builder: (context, favoritesProvider, child) {
-                      final isFavorite = favoritesProvider.isFavoriteSync(toneId);
+                      final isFavorite = favoritesProvider.isFavoriteSync(
+                        toneId,
+                      );
                       return IconButton(
                         onPressed: () => _toggleFavorite(context),
                         icon: Icon(
                           isFavorite ? Icons.favorite : Icons.favorite_border,
                           color: isFavorite ? Colors.red : null,
                         ),
-                        tooltip: isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos',
+                        tooltip: isFavorite
+                            ? 'Quitar de favoritos'
+                            : 'Agregar a favoritos',
                       );
                     },
                   ),
@@ -133,7 +137,10 @@ class ToneCardWidget extends StatelessWidget {
     );
   }
 
-  Future<void> _toggleAudioPlay(BuildContext context, AudioService audioService) async {
+  Future<void> _toggleAudioPlay(
+    BuildContext context,
+    AudioService audioService,
+  ) async {
     try {
       await audioService.toggleTone(toneId, url);
     } catch (e) {
@@ -145,7 +152,7 @@ class ToneCardWidget extends StatelessWidget {
 
   Future<void> _toggleFavorite(BuildContext context) async {
     final favoritesProvider = context.read<FavoritesProvider>();
-    
+
     try {
       final isNowFavorite = await favoritesProvider.toggleFavoriteStatus(
         toneId,
@@ -154,14 +161,12 @@ class ToneCardWidget extends StatelessWidget {
         requiresAttribution: requiresAttribution ?? false,
         attributionText: attributionText,
       );
-      
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              isNowFavorite
-                  ? 'Agregado a favoritos'
-                  : 'Eliminado de favoritos',
+              isNowFavorite ? 'Agregado a favoritos' : 'Eliminado de favoritos',
             ),
             behavior: SnackBarBehavior.floating,
             duration: const Duration(seconds: 2),
@@ -192,7 +197,9 @@ class ToneCardWidget extends StatelessWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -211,13 +218,20 @@ class ToneCardWidget extends StatelessWidget {
                   leading: const Icon(Icons.download),
                   title: const Text('Descargar'),
                   onTap: () async {
-                    // Capturar el contexto del scaffold antes de cerrar el modal
-                    final scaffoldMessenger = ScaffoldMessenger.of(context);
-                    final navigator = Navigator.of(context);
-                    final theme = Theme.of(context);
+                    // Cerrar el modal primero
                     Navigator.pop(context);
+                    // Usar un pequeño delay para permitir que el modal se cierre completamente
                     await Future.delayed(const Duration(milliseconds: 100));
-                    await _downloadToneWithStandardFeedbackUsingRefs(scaffoldMessenger, navigator, theme);
+                    if (context.mounted) {
+                      await DownloadFlowService.downloadToneWithPermissions(
+                        context: context,
+                        toneId: toneId,
+                        title: title,
+                        url: url,
+                        requiresAttribution: requiresAttribution,
+                        attributionText: attributionText,
+                      );
+                    }
                   },
                 ),
               if (showShareOption)
@@ -239,7 +253,9 @@ class ToneCardWidget extends StatelessWidget {
                     onDelete!();
                   },
                 ),
-              if (showAttributionOption && requiresAttribution == true && attributionText != null)
+              if (showAttributionOption &&
+                  requiresAttribution == true &&
+                  attributionText != null)
                 ListTile(
                   leading: const Icon(Icons.info_outline),
                   title: const Text('Información de atribución'),
@@ -267,102 +283,6 @@ class ToneCardWidget extends StatelessWidget {
   }
 
 
-  Future<void> _downloadToneWithStandardFeedbackUsingRefs(
-    ScaffoldMessengerState scaffoldMessenger,
-    NavigatorState navigator,
-    ThemeData theme,
-  ) async {
-    // Usar contexto del widget para obtener el provider
-    final context = scaffoldMessenger.context;
-    if (!context.mounted) {
-      return;
-    }
-    
-    final downloadsProvider = context.read<DownloadsProvider>();
-
-    // Mostrar mensaje inmediato de que la descarga ha comenzado
-    scaffoldMessenger.showSnackBar(
-      SnackBar(
-        content: Text('Preparando descarga de $title'),
-        duration: const Duration(seconds: 1),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-
-    try {
-      // Create a tone object for download
-      final toneForDownload = Tone(
-        id: toneId,
-        title: title,
-        url: url,
-        requiresAttribution: requiresAttribution ?? false,
-        attributionText: attributionText,
-      );
-
-      final result = await downloadsProvider.downloadTone(toneForDownload);
-
-      if (result.isSuccess) {
-        HapticFeedback.lightImpact();
-        scaffoldMessenger.showSnackBar(
-          SnackBar(
-            content: Text('$title descargado exitosamente'),
-            backgroundColor: Colors.green[800],
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 3),
-            action: SnackBarAction(
-              label: 'Ver',
-              textColor: Colors.white,
-              onPressed: () {
-                navigator.pushAndRemoveUntil(
-                  MaterialPageRoute(
-                    builder: (context) => const MainScreen(initialIndex: 2),
-                  ),
-                  (route) => route.isFirst,
-                );
-              },
-            ),
-          ),
-        );
-      } else {
-        HapticFeedback.heavyImpact();
-        String errorMessage = 'Error al descargar el tono';
-
-        switch (result.type) {
-          case DownloadResultType.networkError:
-            errorMessage = 'Error de conexión. Verifica tu internet.';
-            break;
-          case DownloadResultType.storageError:
-            errorMessage = 'Error de almacenamiento. Verifica los permisos.';
-            break;
-          case DownloadResultType.cancelled:
-            errorMessage = 'Descarga cancelada';
-            break;
-          default:
-            errorMessage = result.message ?? 'Error desconocido';
-        }
-
-        scaffoldMessenger.showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
-            backgroundColor: theme.colorScheme.error,
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 4),
-          ),
-        );
-      }
-    } catch (e) {
-      HapticFeedback.heavyImpact();
-      scaffoldMessenger.showSnackBar(
-        SnackBar(
-          content: Text('Error inesperado: $e'),
-          backgroundColor: theme.colorScheme.error,
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 4),
-        ),
-      );
-    }
-  }
-
   void _showErrorSnackBar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -376,9 +296,7 @@ class ToneCardWidget extends StatelessWidget {
         backgroundColor: Theme.of(context).colorScheme.error,
         duration: const Duration(seconds: 3),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
@@ -388,9 +306,7 @@ class ToneCardWidget extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Información de atribución'),
-        content: Text(
-          attributionText ?? 'Sin información disponible',
-        ),
+        content: Text(attributionText ?? 'Sin información disponible'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
