@@ -1,0 +1,11 @@
+name = "sounds-api"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+
+[vars]
+ALLOWED_ORIGIN = "*"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "notification_sounds_db"
+database_id = "42233076-9b21-421c-97ae-464a581d7a75"
