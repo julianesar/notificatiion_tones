@@ -5,7 +5,7 @@ import '../../domain/entities/tone.dart';
 import '../../../../core/services/audio_service.dart';
 import '../../../../core/services/download_flow_service.dart';
 import '../../../downloads/presentation/providers/downloads_provider.dart';
-import '../../../../screens/main_screen.dart';
+import '../../../../core/navigation/navigation_service.dart';
 
 class TonePlayerPage extends StatefulWidget {
   final Tone tone;
@@ -482,13 +482,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                       onTap: isDownloaded 
                           ? () {
                               Navigator.pop(context);
-                              Navigator.pushAndRemoveUntil(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const MainScreen(initialIndex: 2),
-                                ),
-                                (route) => route.isFirst,
-                              );
+                              NavigationService.instance.navigateToDownloads();
                             }
                           : isDownloading 
                               ? null

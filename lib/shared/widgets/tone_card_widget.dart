@@ -5,7 +5,7 @@ import '../../core/services/audio_service.dart';
 import '../../core/services/download_flow_service.dart';
 import '../../features/favorites/presentation/providers/favorites_provider.dart';
 import '../../features/downloads/presentation/providers/downloads_provider.dart';
-import '../../screens/main_screen.dart';
+import '../../core/navigation/navigation_service.dart';
 
 class ToneCardWidget extends StatelessWidget {
   final String toneId;
@@ -250,14 +250,10 @@ class ToneCardWidget extends StatelessWidget {
                       enabled: !isDownloading,
                       onTap: isDownloaded 
                           ? () {
+                              print('ToneCard: "Ver descargas" presionado, cerrando modal...');
                               Navigator.pop(context);
-                              Navigator.pushAndRemoveUntil(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const MainScreen(initialIndex: 2),
-                                ),
-                                (route) => route.isFirst,
-                              );
+                              print('ToneCard: Modal cerrado, navegando...');
+                              NavigationService.instance.navigateToDownloads();
                             }
                           : isDownloading 
                               ? null

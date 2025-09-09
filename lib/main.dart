@@ -23,6 +23,8 @@ import 'core/services/audio_service.dart';
 import 'core/services/permissions_service.dart';
 import 'core/di/service_locator.dart' as di;
 import 'features/downloads/presentation/providers/downloads_provider.dart';
+import 'core/navigation/navigation_service.dart';
+import 'screens/main_screen.dart';
 
 void main() async {
   // Asegurarse de que los widgets estén inicializados
@@ -39,6 +41,12 @@ void main() async {
   
   // Initialize audio service
   await AudioService.instance.initialize();
+
+  // Setup navigation service callback
+  print('Main: Configurando NavigationService con GlobalKey...');
+  setMainScreenBuilder(() => const MainScreen(initialIndex: 2));
+  setMainScreenStateKey(MainScreen.mainScreenKey);
+  print('Main: NavigationService configurado correctamente');
 
   // Initialize favorites dependencies
   final favoritesLocalDS = FavoritesLocalDSImpl();
@@ -97,7 +105,8 @@ class MyApp extends StatelessWidget {
           themeMode: themeProvider.isDarkMode
               ? ThemeMode.dark
               : ThemeMode.light,
-          home: const MainScreen(),
+          navigatorKey: NavigationService.navigatorKey,
+          home: MainScreen(key: MainScreen.mainScreenKey),
           debugShowCheckedModeBanner: false,
         );
       },

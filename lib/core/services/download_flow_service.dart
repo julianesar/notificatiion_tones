@@ -4,9 +4,9 @@ import 'package:provider/provider.dart';
 import '../../../features/downloads/presentation/providers/downloads_provider.dart';
 import '../../../features/downloads/domain/entities/download_result.dart';
 import '../../../features/tones/domain/entities/tone.dart';
-import '../../../screens/main_screen.dart';
 import '../../shared/widgets/permission_explanation_dialog.dart';
 import 'permissions_service.dart';
+import '../navigation/navigation_service.dart';
 
 class DownloadFlowService {
   static Future<void> downloadToneWithPermissions({
@@ -44,12 +44,8 @@ class DownloadFlowService {
             label: 'Ver',
             textColor: Colors.white,
             onPressed: () {
-              navigator.pushAndRemoveUntil(
-                MaterialPageRoute(
-                  builder: (context) => const MainScreen(initialIndex: 2),
-                ),
-                (route) => route.isFirst,
-              );
+              print('DownloadFlow: Botón "Ver" presionado, intentando navegar...');
+              NavigationService.instance.navigateToDownloads();
             },
           ),
         ),
@@ -105,6 +101,7 @@ class DownloadFlowService {
       
       // 5. Proceder con la descarga usando referencias guardadas
       await _proceedWithDownloadWithRefs(
+        context: context,
         scaffoldMessenger: scaffoldMessenger,
         navigator: navigator,
         theme: theme,
@@ -131,6 +128,7 @@ class DownloadFlowService {
   }
 
   static Future<void> _proceedWithDownloadWithRefs({
+    required BuildContext context,
     required ScaffoldMessengerState scaffoldMessenger,
     required NavigatorState navigator,
     required ThemeData theme,
@@ -183,12 +181,8 @@ class DownloadFlowService {
               label: 'Ver',
               textColor: Colors.white,
               onPressed: () {
-                navigator.pushAndRemoveUntil(
-                  MaterialPageRoute(
-                    builder: (context) => const MainScreen(initialIndex: 2),
-                  ),
-                  (route) => route.isFirst,
-                );
+                print('DownloadFlow: Segundo botón "Ver" presionado, intentando navegar...');
+                NavigationService.instance.navigateToDownloads();
               },
             ),
           ),
@@ -252,6 +246,7 @@ class DownloadFlowService {
     final theme = Theme.of(context);
     
     await _proceedWithDownloadWithRefs(
+      context: context,
       scaffoldMessenger: scaffoldMessenger,
       navigator: navigator,
       theme: theme,

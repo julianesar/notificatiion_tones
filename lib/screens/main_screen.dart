@@ -6,6 +6,9 @@ import '../features/downloads/presentation/pages/downloads_page.dart';
 class MainScreen extends StatefulWidget {
   final int initialIndex;
   
+  // Static key para acceder a la instancia del state desde fuera
+  static final GlobalKey<_MainScreenState> mainScreenKey = GlobalKey<_MainScreenState>();
+  
   const MainScreen({super.key, this.initialIndex = 0});
 
   @override
@@ -25,6 +28,15 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+  }
+  
+  // Método público para cambiar el tab desde fuera
+  void changeTab(int index) {
+    if (mounted && index >= 0 && index < _screens.length) {
+      setState(() {
+        _currentIndex = index;
+      });
+    }
   }
 
   @override
