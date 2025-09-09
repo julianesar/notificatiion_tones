@@ -39,7 +39,7 @@ class DownloadFlowService {
           content: Text('$title ya está descargado'),
           backgroundColor: Colors.blue[800],
           behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 2),
+          duration: const Duration(seconds: 6),
           action: SnackBarAction(
             label: 'Ver',
             textColor: Colors.white,
@@ -176,7 +176,7 @@ class DownloadFlowService {
             content: Text('$title descargado exitosamente'),
             backgroundColor: Colors.green[800],
             behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 3),
+            duration: const Duration(seconds: 8),
             action: SnackBarAction(
               label: 'Ver',
               textColor: Colors.white,
