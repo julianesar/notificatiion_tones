@@ -60,6 +60,9 @@ dependencies:
   
   # Dependency injection
   get_it: ^8.0.2
+  
+  # Sharing functionality
+  share_plus: ^10.0.2
 
 dev_dependencies:
   flutter_test:

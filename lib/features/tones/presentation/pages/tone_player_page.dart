@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../domain/entities/tone.dart';
 import '../../../../core/services/audio_service.dart';
 import '../../../../core/services/download_flow_service.dart';
+import '../../../../core/services/share_service.dart';
 import '../../../downloads/presentation/providers/downloads_provider.dart';
 import '../../../../core/navigation/navigation_service.dart';
 
@@ -500,9 +501,18 @@ class _TonePlayerPageState extends State<TonePlayerPage>
               ListTile(
                 leading: const Icon(Icons.share),
                 title: const Text('Compartir'),
-                onTap: () {
+                onTap: () async {
                   Navigator.pop(context);
-                  _showSnackBar(context, 'Compartiendo ${_currentTone.title}');
+                  try {
+                    await context.shareToneEntity(
+                      tone: _currentTone,
+                      additionalMessage: 'Desde la categoría: ${widget.categoryTitle}',
+                    );
+                    
+                    _showSnackBar(context, 'Compartiendo "${_currentTone.title}"');
+                  } catch (e) {
+                    _showSnackBar(context, 'Error al compartir: ${e.toString()}');
+                  }
                 },
               ),
               if (_currentTone.requiresAttribution && _currentTone.attributionText != null) ...[

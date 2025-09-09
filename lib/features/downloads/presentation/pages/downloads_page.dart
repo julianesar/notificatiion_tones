@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/downloads_provider.dart';
 import '../../domain/entities/download_info.dart';
 import '../../../../shared/widgets/tone_card_widget.dart';
+import '../../../../shared/widgets/share_options_widget.dart';
 import '../../../tones/domain/entities/tone.dart';
 import '../../../tones/presentation/pages/tone_player_page.dart';
 
@@ -29,6 +30,19 @@ class _DownloadsPageState extends State<DownloadsPage> {
       appBar: AppBar(
         title: const Text('Mis Descargas'),
         actions: [
+          Consumer<DownloadsProvider>(
+            builder: (context, provider, child) {
+              final completedDownloads = provider.downloadsList
+                  .where((d) => d.status == DownloadStatus.completed)
+                  .toList();
+              if (completedDownloads.isEmpty) return const SizedBox();
+              return IconButton(
+                icon: const Icon(Icons.share),
+                onPressed: () => _showShareDownloads(context, completedDownloads),
+                tooltip: 'Compartir descargas',
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.folder_open),
             onPressed: () => _showStorageInfo(context),
@@ -203,6 +217,27 @@ class _DownloadsPageState extends State<DownloadsPage> {
           );
         },
       ),
+    );
+  }
+
+  void _showShareDownloads(BuildContext context, List<DownloadInfo> completedDownloads) {
+    if (completedDownloads.isEmpty) return;
+
+    // Convert downloads to Tone entities
+    final tones = completedDownloads.map((download) => Tone(
+      id: download.localPath,
+      title: download.fileName,
+      url: download.localPath,
+      requiresAttribution: download.requiresAttribution,
+      attributionText: download.attributionText,
+    )).toList();
+
+    // Show the share options modal
+    context.showShareOptionsModal(
+      tones: tones,
+      collectionName: 'Mis Descargas',
+      showShareApp: true,
+      showShareCollection: true,
     );
   }
 

@@ -3,9 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../core/services/audio_service.dart';
 import '../../core/services/download_flow_service.dart';
+import '../../core/services/share_service.dart';
 import '../../features/favorites/presentation/providers/favorites_provider.dart';
 import '../../features/downloads/presentation/providers/downloads_provider.dart';
 import '../../core/navigation/navigation_service.dart';
+import '../../features/tones/domain/entities/tone.dart';
 
 class ToneCardWidget extends StatelessWidget {
   final String toneId;
@@ -280,9 +282,27 @@ class ToneCardWidget extends StatelessWidget {
                 ListTile(
                   leading: const Icon(Icons.share),
                   title: const Text('Compartir'),
-                  onTap: () {
+                  onTap: () async {
                     Navigator.pop(context);
-                    _showSnackBar(context, 'Compartiendo $title');
+                    try {
+                      // Create tone entity for sharing
+                      final tone = Tone(
+                        id: toneId,
+                        title: title,
+                        url: url,
+                        requiresAttribution: requiresAttribution ?? false,
+                        attributionText: attributionText,
+                      );
+                      
+                      await context.shareToneEntity(
+                        tone: tone,
+                        additionalMessage: subtitle.isNotEmpty ? subtitle : null,
+                      );
+                      
+                      _showSnackBar(context, 'Compartiendo "$title"');
+                    } catch (e) {
+                      _showErrorSnackBar(context, 'Error al compartir: ${e.toString()}');
+                    }
                   },
                 ),
               if (showDeleteOption && onDelete != null)
