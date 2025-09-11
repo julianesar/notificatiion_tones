@@ -264,10 +264,14 @@ class DownloadFlowService {
     PermissionsService permissionsService,
   ) async {
     final sdkVersion = await permissionsService.getAndroidSdkVersion();
-    final permissionType = sdkVersion >= 33 ? 'Música y audio' : 'Almacenamiento';
-    final explanation = sdkVersion >= 33
-        ? 'Necesitamos acceso a "Música y audio" para poder guardar los tonos de notificación en tu dispositivo. Esto nos permite crear archivos de audio en la carpeta de descargas.'
-        : 'Necesitamos acceso al almacenamiento para poder guardar los tonos de notificación en tu dispositivo.';
+    
+    // Solo mostrar diálogo para Android 9 y anteriores
+    if (sdkVersion >= 29) {
+      return true; // No se necesita permiso, proceder directamente
+    }
+    
+    final permissionType = 'Almacenamiento';
+    final explanation = 'Necesitamos acceso al almacenamiento para poder guardar los tonos de notificación en tu dispositivo.';
 
     if (!context.mounted) return false;
     

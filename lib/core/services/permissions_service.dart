@@ -26,14 +26,11 @@ class PermissionsServiceImpl implements PermissionsService {
     
     final sdkVersion = await getAndroidSdkVersion();
     
-    if (sdkVersion >= 33) {
-      // Android 13+ (API 33+) - Granular media permissions
-      return await Permission.audio.isGranted;
-    } else if (sdkVersion >= 30) {
-      // Android 11-12 (API 30-32) - Scoped storage but still need storage
-      return await Permission.storage.isGranted;
+    if (sdkVersion >= 29) {
+      // Android 10+ (API 29+) - No permission needed for MediaStore downloads
+      return true;
     } else {
-      // Android 10 and below - Traditional storage
+      // Android 9 and below (API 28 and below) - Traditional storage permission required
       return await Permission.storage.isGranted;
     }
   }
@@ -45,16 +42,11 @@ class PermissionsServiceImpl implements PermissionsService {
     try {
       final sdkVersion = await getAndroidSdkVersion();
       
-      if (sdkVersion >= 33) {
-        // Android 13+ (API 33+) - Request audio permission for media files
-        final status = await Permission.audio.request();
-        return status.isGranted;
-      } else if (sdkVersion >= 30) {
-        // Android 11-12 (API 30-32) - Still request storage permission
-        final status = await Permission.storage.request();
-        return status.isGranted;
+      if (sdkVersion >= 29) {
+        // Android 10+ (API 29+) - No permission needed for MediaStore downloads
+        return true;
       } else {
-        // Android 10 and below - Traditional storage permission
+        // Android 9 and below (API 28 and below) - Traditional storage permission required
         final status = await Permission.storage.request();
         return status.isGranted;
       }
@@ -70,9 +62,8 @@ class PermissionsServiceImpl implements PermissionsService {
     
     final sdkVersion = await getAndroidSdkVersion();
     
-    if (sdkVersion >= 33) {
-      return 'Se requiere permiso de "Música y audio" para descargar tonos.\n\n'
-             'Ve a Configuración > Aplicaciones > Sonidos de Notificaciones > Permisos > Música y audio';
+    if (sdkVersion >= 29) {
+      return 'Error: No se debería solicitar permisos en Android 10+';
     } else {
       return 'Se requiere permiso de almacenamiento para descargar tonos.\n\n'
              'Ve a Configuración > Aplicaciones > Sonidos de Notificaciones > Permisos > Almacenamiento';

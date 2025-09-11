@@ -20,7 +20,8 @@
       "Bash(flutter build:*)",
       "Bash(dart analyze:*)",
       "Bash(dart:*)",
-      "Bash(r)"
+      "Bash(r)",
+      "Bash(npx:*)"
     ],
     "deny": [],
     "ask": []
