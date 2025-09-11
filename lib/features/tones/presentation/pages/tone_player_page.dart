@@ -10,6 +10,7 @@ import '../../../../core/services/ringtone_management_service.dart';
 import '../../../../core/services/ringtone_configuration_service.dart';
 import '../../../../core/services/permissions_service.dart';
 import '../../../../core/services/media_store_service.dart';
+import '../../../../core/services/filename_service.dart';
 import '../../../../shared/widgets/system_settings_permission_dialog.dart';
 import '../../../../core/di/service_locator.dart';
 import '../../../downloads/presentation/providers/downloads_provider.dart';
@@ -600,8 +601,13 @@ class _TonePlayerPageState extends State<TonePlayerPage>
       final mediaStoreService = sl<MediaStoreService>();
       final publicAudioDir = await mediaStoreService.getPublicAudioDirectory();
       
-      // Construct the exact filename using the same logic as download
-      final fileName = _generateFileName(toneId, title, url);
+      // Usar el servicio profesional de nomenclatura (mismo que usa el download)
+      final filenameService = sl<FilenameService>();
+      final fileName = filenameService.generateUserFriendlyFilename(
+        title: title,
+        url: url,
+        toneId: toneId,
+      );
       final exactPath = '$publicAudioDir/Tonos/$fileName';
       
       print('DEBUG: Checking exact constructed path: $exactPath');
@@ -622,26 +628,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
     }
   }
 
-  // Generate filename using the EXACT same logic as DownloadRepositoryImpl
-  String _generateFileName(String toneId, String title, String url) {
-    String cleanTitle = title
-        .replaceAll(RegExp(r'[^\w\s-]'), '')
-        .replaceAll(RegExp(r'\s+'), '_')
-        .trim();
-    
-    if (cleanTitle.isEmpty) {
-      cleanTitle = 'tone_${DateTime.now().millisecondsSinceEpoch}';
-    }
-    
-    // Use path.extension exactly like DownloadRepositoryImpl does
-    String extension = path.extension(url);
-    if (extension.isEmpty || !extension.contains('.')) {
-      extension = '.mp3';
-    }
-    
-    // Include toneId at the beginning of filename - same as repository
-    return '${toneId}_$cleanTitle$extension';
-  }
+  // Método removido - ahora se usa FilenameService para consistencia
 
 
   // Professional success message for successful ringtone configuration

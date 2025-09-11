@@ -8,6 +8,8 @@ import '../../domain/usecases/get_downloaded_files.dart';
 import '../../domain/usecases/is_file_downloaded.dart';
 import '../../domain/repositories/download_repository.dart';
 import '../../../tones/domain/entities/tone.dart';
+import '../../../../core/services/filename_service.dart';
+import '../../../../core/di/service_locator.dart';
 
 class DownloadsProvider extends ChangeNotifier {
   final DownloadTone _downloadTone;
@@ -332,61 +334,29 @@ class DownloadsProvider extends ChangeNotifier {
   }
 
   String _extractToneIdFromFileName(String fileName) {
-    // El nombre del archivo tiene formato: toneId_cleanTitle.extension
-    // Estrategia mejorada: priorizar métodos más confiables
-    
-    // Remover la extensión primero
-    final nameWithoutExtension = fileName.contains('.') 
-        ? fileName.substring(0, fileName.lastIndexOf('.'))
-        : fileName;
-    
-    print('DEBUG: Extracting toneId from: $nameWithoutExtension');
-    
-    // Método 1: Buscar el primer _ que separe un ID válido de un título
-    final parts = nameWithoutExtension.split('_');
-    if (parts.length >= 2) {
-      final potentialId = parts[0];
-      final remainingParts = parts.skip(1).join('_');
+    // Usar el servicio profesional de nomenclatura para extraer el ID
+    try {
+      final filenameService = sl<FilenameService>();
+      final extractedId = filenameService.extractTechnicalId(fileName);
+      print('DEBUG: Extracted toneId using FilenameService: $extractedId');
+      return extractedId;
+    } catch (e) {
+      print('DEBUG: Error extracting toneId with FilenameService: $e');
       
-      // Verificar si el primer parte parece ser un toneId válido
-      final hasNumbers = RegExp(r'\d').hasMatch(potentialId);
-      final hasValidIdChars = RegExp(r'^[a-zA-Z0-9_-]+$').hasMatch(potentialId);
-      final remainingStartsWithCapital = remainingParts.isNotEmpty && 
-                                        remainingParts[0].toUpperCase() == remainingParts[0] &&
-                                        remainingParts[0].toLowerCase() != remainingParts[0];
+      // Fallback simple en caso de error
+      final nameWithoutExtension = fileName.contains('.') 
+          ? fileName.substring(0, fileName.lastIndexOf('.'))
+          : fileName;
+      final parts = nameWithoutExtension.split('_');
       
-      if (hasNumbers && hasValidIdChars && (remainingStartsWithCapital || potentialId.contains('-') || potentialId.contains('__'))) {
-        print('DEBUG: Extracted toneId using Method 1: $potentialId');
-        return potentialId;
+      if (parts.isNotEmpty && parts[0].isNotEmpty) {
+        print('DEBUG: Using fallback extraction: ${parts[0]}');
+        return parts[0];
       }
+      
+      print('DEBUG: Could not extract toneId from: $fileName');
+      return '';
     }
-    
-    // Método 2: Buscar patrones específicos de IDs como freesound__123456-7
-    final freesoundPattern = RegExp(r'^([a-zA-Z0-9_-]+__\d+-?\d*)_');
-    final freesoundMatch = freesoundPattern.firstMatch(nameWithoutExtension);
-    if (freesoundMatch != null) {
-      final extractedId = freesoundMatch.group(1)!;
-      print('DEBUG: Extracted toneId using Method 2 (freesound pattern): $extractedId');
-      return extractedId;
-    }
-    
-    // Método 3: Buscar cualquier secuencia que termine con números antes de _
-    final numberPattern = RegExp(r'^([a-zA-Z0-9_-]*\d+[a-zA-Z0-9_-]*)_');
-    final numberMatch = numberPattern.firstMatch(nameWithoutExtension);
-    if (numberMatch != null) {
-      final extractedId = numberMatch.group(1)!;
-      print('DEBUG: Extracted toneId using Method 3 (number pattern): $extractedId');
-      return extractedId;
-    }
-    
-    // Método 4: Fallback simple - primer segmento
-    if (parts.isNotEmpty && parts[0].isNotEmpty) {
-      print('DEBUG: Extracted toneId using Method 4 (fallback): ${parts[0]}');
-      return parts[0];
-    }
-    
-    print('DEBUG: Could not extract toneId from: $fileName');
-    return '';
   }
 
   @override

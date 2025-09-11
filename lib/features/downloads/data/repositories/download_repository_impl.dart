@@ -5,6 +5,7 @@ import 'package:path/path.dart' as path;
 import '../../../../core/services/permissions_service.dart';
 import '../../../../core/services/storage_service.dart';
 import '../../../../core/services/media_store_service.dart';
+import '../../../../core/services/filename_service.dart';
 import '../../domain/entities/download_info.dart';
 import '../../domain/entities/download_result.dart';
 import '../../domain/repositories/download_repository.dart';
@@ -19,6 +20,7 @@ class DownloadRepositoryImpl implements DownloadRepository {
   final PermissionsService _permissionsService;
   final StorageService _storageService;
   final MediaStoreService _mediaStoreService;
+  final FilenameService _filenameService;
   
   final Map<String, StreamController<DownloadInfo>> _progressControllers = {};
 
@@ -28,11 +30,13 @@ class DownloadRepositoryImpl implements DownloadRepository {
     required PermissionsService permissionsService,
     required StorageService storageService,
     required MediaStoreService mediaStoreService,
+    required FilenameService filenameService,
   })  : _remoteDataSource = remoteDataSource,
         _localDataSource = localDataSource,
         _permissionsService = permissionsService,
         _storageService = storageService,
-        _mediaStoreService = mediaStoreService;
+        _mediaStoreService = mediaStoreService,
+        _filenameService = filenameService;
 
   @override
   Future<DownloadResult> downloadTone({
@@ -59,7 +63,12 @@ class DownloadRepositoryImpl implements DownloadRepository {
         }
       }
 
-      final fileName = _generateFileName(tone.id, tone.title, tone.url);
+      // Usar el nuevo servicio profesional de nomenclatura
+      final fileName = _filenameService.generateUserFriendlyFilename(
+        title: tone.title,
+        url: tone.url,
+        toneId: tone.id,
+      );
 
       final downloadInfo = DownloadInfoModel(
         id: downloadId,
@@ -253,24 +262,7 @@ class DownloadRepositoryImpl implements DownloadRepository {
     return null;
   }
 
-  String _generateFileName(String toneId, String title, String url) {
-    String cleanTitle = title
-        .replaceAll(RegExp(r'[^\w\s-]'), '')
-        .replaceAll(RegExp(r'\s+'), '_')
-        .trim();
-    
-    if (cleanTitle.isEmpty) {
-      cleanTitle = 'tone_${DateTime.now().millisecondsSinceEpoch}';
-    }
-    
-    String extension = path.extension(url);
-    if (extension.isEmpty || !extension.contains('.')) {
-      extension = '.mp3';
-    }
-    
-    // Incluir el ID del tono al inicio del nombre del archivo
-    return '${toneId}_$cleanTitle$extension';
-  }
+  // Método removido - ahora se usa FilenameService para nomenclatura profesional
 
   Future<void> _ensureDirectoryExists(String directoryPath) async {
     final directory = Directory(directoryPath);
