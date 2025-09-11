@@ -4,6 +4,7 @@ class DownloadInfoModel extends DownloadInfo {
   const DownloadInfoModel({
     required super.id,
     required super.fileName,
+    required super.originalTitle,
     required super.url,
     required super.localPath,
     required super.status,
@@ -21,6 +22,7 @@ class DownloadInfoModel extends DownloadInfo {
     return DownloadInfoModel(
       id: json['id'] as String,
       fileName: json['fileName'] as String,
+      originalTitle: json['originalTitle'] as String? ?? json['fileName'] as String, // Fallback para compatibilidad
       url: json['url'] as String,
       localPath: json['localPath'] as String,
       status: DownloadStatus.values[json['status'] as int],
@@ -41,6 +43,7 @@ class DownloadInfoModel extends DownloadInfo {
     return {
       'id': id,
       'fileName': fileName,
+      'originalTitle': originalTitle,
       'url': url,
       'localPath': localPath,
       'status': status.index,
@@ -59,6 +62,7 @@ class DownloadInfoModel extends DownloadInfo {
   DownloadInfoModel copyWith({
     String? id,
     String? fileName,
+    String? originalTitle,
     String? url,
     String? localPath,
     DownloadStatus? status,
@@ -74,6 +78,7 @@ class DownloadInfoModel extends DownloadInfo {
     return DownloadInfoModel(
       id: id ?? this.id,
       fileName: fileName ?? this.fileName,
+      originalTitle: originalTitle ?? this.originalTitle,
       url: url ?? this.url,
       localPath: localPath ?? this.localPath,
       status: status ?? this.status,

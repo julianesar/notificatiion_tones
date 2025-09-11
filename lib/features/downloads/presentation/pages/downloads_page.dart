@@ -7,6 +7,8 @@ import '../../../../shared/widgets/tone_card_widget.dart';
 import '../../../../shared/widgets/share_options_widget.dart';
 import '../../../tones/domain/entities/tone.dart';
 import '../../../tones/presentation/pages/tone_player_page.dart';
+import '../../../../core/services/filename_service.dart';
+import '../../../../core/di/service_locator.dart';
 
 class DownloadsPage extends StatefulWidget {
   const DownloadsPage({super.key});
@@ -186,7 +188,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                         child: ToneCardWidget(
                           toneId: completedDownloads[index].localPath,
-                          title: completedDownloads[index].fileName,
+                          title: _getDisplayTitle(completedDownloads[index]),
                           url: completedDownloads[index].localPath,
                           subtitle: 'Descargado ${_formatDate(completedDownloads[index].completedAt!)}',
                           requiresAttribution: completedDownloads[index].requiresAttribution,
@@ -226,7 +228,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
     // Convert downloads to Tone entities
     final tones = completedDownloads.map((download) => Tone(
       id: download.localPath,
-      title: download.fileName,
+      title: _getDisplayTitle(download),
       url: download.localPath,
       requiresAttribution: download.requiresAttribution,
       attributionText: download.attributionText,
@@ -303,7 +305,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
       builder: (context) => AlertDialog(
         title: const Text('Eliminar Descarga'),
         content: Text(
-          '¿Estás seguro de que quieres eliminar "${download.fileName}"?\n\n'
+          '¿Estás seguro de que quieres eliminar "${_getDisplayTitle(download)}"?\n\n'
           'Esta acción no se puede deshacer.',
         ),
         actions: [
@@ -352,6 +354,18 @@ class _DownloadsPageState extends State<DownloadsPage> {
     );
   }
 
+  String _getDisplayTitle(DownloadInfo download) {
+    try {
+      final filenameService = sl<FilenameService>();
+      return filenameService.generateDisplayName(download.originalTitle);
+    } catch (e) {
+      // Fallback al nombre original o fileName si no está disponible
+      return download.originalTitle.isNotEmpty 
+          ? download.originalTitle 
+          : download.fileName;
+    }
+  }
+
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final difference = now.difference(date);
@@ -371,7 +385,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
     // Crear un objeto Tone temporal para el reproductor usando el archivo local
     final localTone = Tone(
       id: download.localPath, // Usar la ruta local como ID
-      title: download.fileName,
+      title: _getDisplayTitle(download),
       url: download.localPath, // URL apunta al archivo local
       requiresAttribution: download.requiresAttribution,
       attributionText: download.attributionText,
@@ -396,6 +410,18 @@ class _ActiveDownloadTile extends StatelessWidget {
 
   const _ActiveDownloadTile({required this.download});
 
+  String _getDisplayTitle(DownloadInfo download) {
+    try {
+      final filenameService = sl<FilenameService>();
+      return filenameService.generateDisplayName(download.originalTitle);
+    } catch (e) {
+      // Fallback al nombre original o fileName si no está disponible
+      return download.originalTitle.isNotEmpty 
+          ? download.originalTitle 
+          : download.fileName;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -415,7 +441,7 @@ class _ActiveDownloadTile extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    download.fileName,
+                    _getDisplayTitle(download),
                     style: const TextStyle(fontWeight: FontWeight.w500),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

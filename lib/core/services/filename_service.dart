@@ -18,6 +18,9 @@ abstract class FilenameService {
     required String toneId,
   });
   
+  /// Genera nombre de visualización limpio para mostrar al usuario
+  String generateDisplayName(String originalTitle);
+  
   /// Extrae el ID técnico de un nombre de archivo
   String extractTechnicalId(String filename);
   
@@ -59,12 +62,37 @@ class FilenameServiceImpl implements FilenameService {
   }) {
     final cleanTitle = _cleanTitle(title);
     final extension = extractExtension(url);
-    final shortId = _generateShortId(toneId);
+    final safeToneId = _sanitizeToneId(toneId);
     
-    // Formato técnico: [ID_corto]_Titulo_Limpio.ext
-    final technicalName = '${shortId}_$cleanTitle$extension';
+    // Formato técnico: [ToneID_Original]_Titulo_Limpio.ext
+    final technicalName = '${safeToneId}_$cleanTitle$extension';
     
     return _limitLength(technicalName, extension);
+  }
+
+  @override
+  String generateDisplayName(String originalTitle) {
+    try {
+      // Limpiar el título para visualización
+      String displayName = originalTitle
+          .trim()
+          .replaceAll(RegExp(r'[_\-]+'), ' ')     // Reemplazar guiones y underscores con espacios
+          .replaceAll(RegExp(r'\s+'), ' ')        // Múltiples espacios -> uno solo
+          .trim();
+      
+      if (displayName.isEmpty) {
+        return 'Tono de audio';
+      }
+      
+      // Capitalizar la primera letra de cada palabra para mejor presentación
+      return displayName.split(' ').map((word) {
+        if (word.isEmpty) return word;
+        return word[0].toUpperCase() + word.substring(1).toLowerCase();
+      }).join(' ');
+      
+    } catch (e) {
+      return originalTitle.isNotEmpty ? originalTitle : 'Tono de audio';
+    }
   }
 
   @override
@@ -73,14 +101,15 @@ class FilenameServiceImpl implements FilenameService {
       // Remover extensión
       final nameWithoutExt = path.basenameWithoutExtension(filename);
       
-      // Buscar patrón [ID]_Titulo
+      // Buscar patrón [ToneID]_Titulo
       final parts = nameWithoutExt.split('_');
       if (parts.isNotEmpty) {
         final firstPart = parts[0];
         
-        // Verificar si parece un ID técnico (contiene letras y números)
-        if (_looksLikeTechnicalId(firstPart)) {
-          return firstPart;
+        // El primer componente es el toneId sanitizado
+        // Solo verificar que no esté vacío
+        if (firstPart.isNotEmpty) {
+          return _unsanitizeToneId(firstPart);
         }
       }
       
@@ -151,43 +180,53 @@ class FilenameServiceImpl implements FilenameService {
     return _capitalizeWords(cleaned);
   }
 
-  /// Genera un ID corto y único a partir del ID técnico original
-  String _generateShortId(String originalId) {
+  /// Sanitiza el toneId para uso seguro en nombres de archivo
+  String _sanitizeToneId(String toneId) {
     try {
-      // Si el ID es corto y limpio, usarlo tal como está
-      if (originalId.length <= 8 && RegExp(r'^[a-zA-Z0-9]+$').hasMatch(originalId)) {
-        return originalId;
+      // Reemplazar caracteres problemáticos con equivalentes seguros
+      String sanitized = toneId
+          .replaceAll(':', '_COLON_')
+          .replaceAll('/', '_SLASH_')
+          .replaceAll('\\', '_BACKSLASH_')
+          .replaceAll('*', '_STAR_')
+          .replaceAll('?', '_QUESTION_')
+          .replaceAll('"', '_QUOTE_')
+          .replaceAll('<', '_LT_')
+          .replaceAll('>', '_GT_')
+          .replaceAll('|', '_PIPE_')
+          .replaceAll(' ', '_SPACE_');
+      
+      // Asegurar que no esté vacío
+      if (sanitized.isEmpty) {
+        sanitized = 'UNKNOWN_ID';
       }
       
-      // Para IDs complejos como "freesound__123456-7", extraer la parte numérica
-      final numericMatch = RegExp(r'(\d+)').firstMatch(originalId);
-      if (numericMatch != null) {
-        final numericPart = numericMatch.group(1)!;
-        
-        // Si la parte numérica es suficiente, usarla
-        if (numericPart.length >= 4) {
-          return 'T$numericPart'; // Prefijo "T" de "Tone"
-        }
-      }
-      
-      // Fallback: generar hash corto del ID original
-      final hash = originalId.hashCode.abs();
-      return 'T${hash.toString().substring(0, 6)}';
-      
+      return sanitized;
     } catch (e) {
-      // Fallback final: usar timestamp
-      return 'T${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
+      return 'ERROR_ID';
     }
   }
 
-  /// Verifica si una cadena parece un ID técnico
-  bool _looksLikeTechnicalId(String value) {
-    // IDs técnicos típicamente:
-    // - Empiezan con T (nuestro prefijo)
-    // - Contienen números
-    // - Son relativamente cortos (< 15 caracteres)
-    return value.length <= 15 && 
-           (value.startsWith('T') || RegExp(r'\d').hasMatch(value));
+  /// Restaura el toneId original desde la versión sanitizada
+  String _unsanitizeToneId(String sanitizedId) {
+    try {
+      // Revertir las transformaciones de sanitización
+      String original = sanitizedId
+          .replaceAll('_COLON_', ':')
+          .replaceAll('_SLASH_', '/')
+          .replaceAll('_BACKSLASH_', '\\')
+          .replaceAll('_STAR_', '*')
+          .replaceAll('_QUESTION_', '?')
+          .replaceAll('_QUOTE_', '"')
+          .replaceAll('_LT_', '<')
+          .replaceAll('_GT_', '>')
+          .replaceAll('_PIPE_', '|')
+          .replaceAll('_SPACE_', ' ');
+      
+      return original;
+    } catch (e) {
+      return sanitizedId; // Fallback al valor sanitizado
+    }
   }
 
   /// Capitaliza las palabras separadas por guiones bajos

@@ -23,6 +23,7 @@ class DownloadRepositoryImpl implements DownloadRepository {
   final FilenameService _filenameService;
   
   final Map<String, StreamController<DownloadInfo>> _progressControllers = {};
+  final Set<String> _activeDownloads = {};
 
   DownloadRepositoryImpl({
     required DownloadRemoteDataSource remoteDataSource,
@@ -43,6 +44,22 @@ class DownloadRepositoryImpl implements DownloadRepository {
     required Tone tone,
     Function(double progress)? onProgress,
   }) async {
+    // Verificar si ya existe una descarga activa para este tono
+    if (_activeDownloads.contains(tone.id)) {
+      print('DEBUG: Download already in progress for tone: ${tone.id}');
+      return DownloadResult.unknownError('Ya existe una descarga en progreso para este tono');
+    }
+
+    // Verificar si el archivo ya está descargado
+    final isAlreadyDownloaded = await isFileDownloaded(tone.id);
+    if (isAlreadyDownloaded) {
+      print('DEBUG: File already downloaded for tone: ${tone.id}');
+      return DownloadResult.unknownError('El archivo ya está descargado');
+    }
+
+    // Marcar como descarga activa
+    _activeDownloads.add(tone.id);
+    
     final downloadId = '${tone.id}_${DateTime.now().millisecondsSinceEpoch}';
 
     StreamController<DownloadInfo>? progressController;
@@ -63,8 +80,8 @@ class DownloadRepositoryImpl implements DownloadRepository {
         }
       }
 
-      // Usar el nuevo servicio profesional de nomenclatura
-      final fileName = _filenameService.generateUserFriendlyFilename(
+      // Usar el nuevo servicio profesional de nomenclatura técnica para poder extraer el ID
+      final fileName = _filenameService.generateTechnicalFilename(
         title: tone.title,
         url: tone.url,
         toneId: tone.id,
@@ -73,6 +90,7 @@ class DownloadRepositoryImpl implements DownloadRepository {
       final downloadInfo = DownloadInfoModel(
         id: downloadId,
         fileName: fileName,
+        originalTitle: tone.title, // Almacenar el título original para mostrar al usuario
         url: tone.url,
         localPath: '',
         status: DownloadStatus.waiting,
@@ -127,6 +145,8 @@ class DownloadRepositoryImpl implements DownloadRepository {
       progressController?.add(completedInfo);
 
       _cleanup(downloadId);
+      // Remover de descargas activas al completar exitosamente
+      _activeDownloads.remove(tone.id);
 
       final publicDir = await _mediaStoreService.getPublicAudioDirectory();
       final userFriendlyPath = publicDir.replaceAll('/storage/emulated/0/', '/');
@@ -138,6 +158,8 @@ class DownloadRepositoryImpl implements DownloadRepository {
 
     } catch (e) {
       await _handleDownloadError(downloadId, progressController, e);
+      // Remover de descargas activas en caso de error
+      _activeDownloads.remove(tone.id);
       
       if (e.toString().contains('cancelada')) {
         return DownloadResult.cancelled();
@@ -158,6 +180,10 @@ class DownloadRepositoryImpl implements DownloadRepository {
       
       final download = await _localDataSource.getDownload(downloadId);
       if (download != null) {
+        // Extraer el toneId del fileName para remover de descargas activas
+        final toneId = _filenameService.extractTechnicalId(download.fileName);
+        _activeDownloads.remove(toneId);
+        
         final cancelledInfo = download.copyWith(
           status: DownloadStatus.cancelled,
         );
@@ -303,5 +329,6 @@ class DownloadRepositoryImpl implements DownloadRepository {
       controller.close();
     }
     _progressControllers.clear();
+    _activeDownloads.clear();
   }
 }

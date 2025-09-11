@@ -322,9 +322,9 @@ class _TonePlayerPageState extends State<TonePlayerPage>
     // Refresh downloads before showing the modal
     final downloadsProvider = context.read<DownloadsProvider>();
     await downloadsProvider.refreshDownloadedFiles();
-    
+
     if (!mounted) return;
-    
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -540,8 +540,12 @@ class _TonePlayerPageState extends State<TonePlayerPage>
   }) async {
     try {
       // Get the downloaded file path directly using the exact storage path
-      final filePath = await _getDownloadedFilePath(_currentTone.id, _currentTone.title, _currentTone.url);
-      
+      final filePath = await _getDownloadedFilePath(
+        _currentTone.id,
+        _currentTone.title,
+        _currentTone.url,
+      );
+
       if (filePath == null) {
         _showSnackBar(
           context,
@@ -583,12 +587,16 @@ class _TonePlayerPageState extends State<TonePlayerPage>
   }
 
   // Professional method to get the exact downloaded file path
-  Future<String?> _getDownloadedFilePath(String toneId, String title, String url) async {
+  Future<String?> _getDownloadedFilePath(
+    String toneId,
+    String title,
+    String url,
+  ) async {
     try {
       // Method 1: Use the DownloadRepository's built-in method (most reliable)
       final downloadRepository = sl<DownloadRepository>();
       final repoPath = await downloadRepository.getDownloadedFilePath(toneId);
-      
+
       if (repoPath != null) {
         final file = File(repoPath);
         if (await file.exists()) {
@@ -596,32 +604,31 @@ class _TonePlayerPageState extends State<TonePlayerPage>
           return repoPath;
         }
       }
-      
+
       // Method 2: Construct exact path using same logic as download
       final mediaStoreService = sl<MediaStoreService>();
       final publicAudioDir = await mediaStoreService.getPublicAudioDirectory();
-      
-      // Usar el servicio profesional de nomenclatura (mismo que usa el download)
+
+      // Usar el servicio profesional de nomenclatura técnica (mismo que usa el download)
       final filenameService = sl<FilenameService>();
-      final fileName = filenameService.generateUserFriendlyFilename(
+      final fileName = filenameService.generateTechnicalFilename(
         title: title,
         url: url,
         toneId: toneId,
       );
       final exactPath = '$publicAudioDir/Tonos/$fileName';
-      
+
       print('DEBUG: Checking exact constructed path: $exactPath');
-      
+
       // Check if file exists at exact location
       final exactFile = File(exactPath);
       if (await exactFile.exists()) {
         print('DEBUG: Found file using exact path construction');
         return exactPath;
       }
-      
+
       print('DEBUG: File not found for toneId: $toneId');
       return null;
-      
     } catch (e) {
       print('DEBUG: Error getting downloaded file path: $e');
       return null;
@@ -629,7 +636,6 @@ class _TonePlayerPageState extends State<TonePlayerPage>
   }
 
   // Método removido - ahora se usa FilenameService para consistencia
-
 
   // Professional success message for successful ringtone configuration
   void _showSuccessMessage(String actionName) {

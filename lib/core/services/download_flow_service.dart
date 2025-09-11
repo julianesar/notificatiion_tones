@@ -189,6 +189,31 @@ class DownloadFlowService {
         );
       } else {
         print('DEBUG: Descarga falló: ${result.message}');
+        
+        // Verificar si es un error de descarga duplicada para dar feedback diferente
+        if (result.message?.contains('ya está descargado') == true ||
+            result.message?.contains('descarga en progreso') == true) {
+          // Para archivos ya descargados o en progreso, usar feedback ligero
+          HapticFeedback.lightImpact();
+          scaffoldMessenger.showSnackBar(
+            SnackBar(
+              content: Text(result.message ?? 'El archivo ya existe'),
+              backgroundColor: Colors.blue[800],
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 4),
+              action: SnackBarAction(
+                label: 'Ver',
+                textColor: Colors.white,
+                onPressed: () {
+                  NavigationService.instance.navigateToDownloads();
+                },
+              ),
+            ),
+          );
+          return;
+        }
+        
+        // Para errores reales, usar feedback fuerte
         HapticFeedback.heavyImpact();
         String errorMessage = 'Error al descargar el tono';
 
@@ -515,6 +540,18 @@ class DownloadFlowService {
         
       } else {
         print('DEBUG: Descarga falló: ${result.message}');
+        
+        // Verificar si es un error de descarga duplicada
+        if (result.message?.contains('ya está descargado') == true ||
+            result.message?.contains('descarga en progreso') == true) {
+          // Si ya está descargado, mostrar directamente el modal de configuración
+          print('DEBUG: Archivo ya descargado, mostrando modal de configuración');
+          HapticFeedback.lightImpact();
+          onDownloadSuccess();
+          return;
+        }
+        
+        // Para errores reales
         HapticFeedback.heavyImpact();
         String errorMessage = 'Error al descargar el tono';
 

@@ -103,6 +103,7 @@ class DownloadsProvider extends ChangeNotifier {
       orElse: () => DownloadInfo(
         id: '',
         fileName: '',
+        originalTitle: '',
         url: '',
         localPath: '',
         status: DownloadStatus.completed,
@@ -114,6 +115,18 @@ class DownloadsProvider extends ChangeNotifier {
   }
 
   Future<DownloadResult> downloadTone(Tone tone) async {
+    // Verificar si ya está descargado antes de proceder
+    if (isDownloaded(tone.id)) {
+      print('DEBUG: Tone ${tone.id} already downloaded, skipping');
+      return DownloadResult.unknownError('El tono ya está descargado');
+    }
+
+    // Verificar si ya está en proceso de descarga
+    if (isDownloading(tone.id) || _initiatingDownloads.contains(tone.id)) {
+      print('DEBUG: Tone ${tone.id} already downloading, skipping');
+      return DownloadResult.unknownError('Ya existe una descarga en progreso para este tono');
+    }
+
     // Feedback inmediato: mostrar que la descarga está iniciando
     _initiatingDownloads.add(tone.id);
     _error = null;
@@ -161,6 +174,7 @@ class DownloadsProvider extends ChangeNotifier {
         orElse: () => DownloadInfo(
           id: '',
           fileName: '',
+          originalTitle: '',
           url: '',
           localPath: '',
           status: DownloadStatus.completed,

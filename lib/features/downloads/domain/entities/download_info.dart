@@ -12,6 +12,7 @@ enum DownloadStatus {
 class DownloadInfo {
   final String id;
   final String fileName;
+  final String originalTitle; // Título original del tono para mostrar al usuario
   final String url;
   final String localPath;
   final DownloadStatus status;
@@ -27,6 +28,7 @@ class DownloadInfo {
   const DownloadInfo({
     required this.id,
     required this.fileName,
+    required this.originalTitle,
     required this.url,
     required this.localPath,
     required this.status,
@@ -43,6 +45,7 @@ class DownloadInfo {
   DownloadInfo copyWith({
     String? id,
     String? fileName,
+    String? originalTitle,
     String? url,
     String? localPath,
     DownloadStatus? status,
@@ -58,6 +61,7 @@ class DownloadInfo {
     return DownloadInfo(
       id: id ?? this.id,
       fileName: fileName ?? this.fileName,
+      originalTitle: originalTitle ?? this.originalTitle,
       url: url ?? this.url,
       localPath: localPath ?? this.localPath,
       status: status ?? this.status,
