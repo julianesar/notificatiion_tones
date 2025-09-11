@@ -147,6 +147,142 @@ class _TonePlayerPageState extends State<TonePlayerPage>
     );
   }
 
+  Future<void> _downloadAndConfigureTone() async {
+    await DownloadFlowService.downloadToneWithPermissionsAndConfigure(
+      context: context,
+      toneId: _currentTone.id,
+      title: _currentTone.title,
+      url: _currentTone.url,
+      requiresAttribution: _currentTone.requiresAttribution,
+      attributionText: _currentTone.attributionText,
+      onDownloadSuccess: _showRingtoneConfigurationModal,
+    );
+  }
+
+  void _showRingtoneConfigurationModal() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        final colorScheme = Theme.of(context).colorScheme;
+        
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 16),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Text(
+                  'Configurar "${_currentTone.title}"',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Text(
+                  'Selecciona cómo quieres usar este tono',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: 24),
+              ListTile(
+                leading: Icon(
+                  Icons.phone,
+                  color: colorScheme.primary,
+                ),
+                title: const Text('Tono de llamada'),
+                subtitle: const Text('Configurar como tono principal de llamadas'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _setAsCallRingtone();
+                },
+              ),
+              ListTile(
+                leading: Icon(
+                  Icons.notifications,
+                  color: colorScheme.primary,
+                ),
+                title: const Text('Tono de notificación'),
+                subtitle: const Text('Configurar como tono de notificaciones'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _setAsNotificationRingtone();
+                },
+              ),
+              ListTile(
+                leading: Icon(
+                  Icons.alarm,
+                  color: colorScheme.primary,
+                ),
+                title: const Text('Tono de alarma'),
+                subtitle: const Text('Configurar como tono de alarmas'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _setAsAlarmRingtone();
+                },
+              ),
+              ListTile(
+                leading: Icon(
+                  Icons.person,
+                  color: colorScheme.primary,
+                ),
+                title: const Text('Tono de contacto'),
+                subtitle: const Text('Asignar a un contacto específico'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _setAsContactRingtone();
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _setAsCallRingtone() {
+    // TODO: Implementar configuración como tono de llamada
+    _showSnackBar(context, 'Configurando como tono de llamada...');
+  }
+
+  void _setAsNotificationRingtone() {
+    // TODO: Implementar configuración como tono de notificación
+    _showSnackBar(context, 'Configurando como tono de notificación...');
+  }
+
+  void _setAsAlarmRingtone() {
+    // TODO: Implementar configuración como tono de alarma
+    _showSnackBar(context, 'Configurando como tono de alarma...');
+  }
+
+  void _setAsContactRingtone() {
+    // TODO: Implementar configuración como tono de contacto
+    _showSnackBar(context, 'Configurando como tono de contacto...');
+  }
+
   void _seekTo(double value) async {
     final audioService = context.read<AudioService>();
     final duration = audioService.duration;
@@ -410,6 +546,48 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                       color: _hasNext()
                           ? colorScheme.onSurfaceVariant
                           : colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 20),
+
+              // Additional Action Buttons
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  // Favorite Button
+                  IconButton(
+                    onPressed: () {
+                      // TODO: Implement favorite functionality
+                    },
+                    icon: Icon(
+                      Icons.favorite_border,
+                      size: 28,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  // Configure Sound Button
+                  IconButton(
+                    onPressed: () async {
+                      await _downloadAndConfigureTone();
+                    },
+                    icon: Icon(
+                      Icons.settings,
+                      size: 28,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  // Share Button
+                  IconButton(
+                    onPressed: () {
+                      // TODO: Implement share functionality
+                    },
+                    icon: Icon(
+                      Icons.share,
+                      size: 28,
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
