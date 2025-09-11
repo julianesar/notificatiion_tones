@@ -154,11 +154,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   onTap: () => _openPlayer(context, favorite),
                   showFavoriteButton: true,
                   showDeleteButtonInTrailing: false,
-                  showOpenPlayerOption: true,
-                  showDownloadOption: false,
-                  showShareOption: true,
-                  showDeleteOption: false,
-                  showAttributionOption: true,
                 );
               },
             ),

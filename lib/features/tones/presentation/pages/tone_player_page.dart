@@ -814,12 +814,18 @@ class _TonePlayerPageState extends State<TonePlayerPage>
           ),
         ),
         centerTitle: true,
-        actions: [
-          IconButton(
-            onPressed: () => _showOptionsMenu(context),
-            icon: const Icon(Icons.more_vert),
-          ),
-        ],
+        actions: _currentTone.requiresAttribution == true
+            ? [
+                IconButton(
+                  onPressed: () => _showAttributionDialog(context),
+                  icon: Icon(
+                    Icons.info_outline,
+                    color: colorScheme.onSurface,
+                  ),
+                  tooltip: 'Información de atribución',
+                ),
+              ]
+            : null,
       ),
       body: SafeArea(
         child: Padding(
@@ -1087,8 +1093,24 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                   ),
                   // Share Button
                   IconButton(
-                    onPressed: () {
-                      // TODO: Implement share functionality
+                    onPressed: () async {
+                      try {
+                        await context.shareToneEntity(
+                          tone: _currentTone,
+                          additionalMessage:
+                              'Desde la categoría: ${widget.categoryTitle}',
+                        );
+
+                        _showSnackBar(
+                          context,
+                          'Compartiendo "${_currentTone.title}"',
+                        );
+                      } catch (e) {
+                        _showSnackBar(
+                          context,
+                          'Error al compartir: ${e.toString()}',
+                        );
+                      }
                     },
                     icon: Icon(
                       Icons.share,
@@ -1107,75 +1129,6 @@ class _TonePlayerPageState extends State<TonePlayerPage>
     );
   }
 
-  void _showOptionsMenu(BuildContext context) {
-    // Refrescar el estado de descargas antes de mostrar el modal
-    context.read<DownloadsProvider>().refreshDownloadedFiles();
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 16),
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 20),
-              ListTile(
-                leading: const Icon(Icons.share),
-                title: const Text('Compartir'),
-                onTap: () async {
-                  Navigator.pop(context);
-                  try {
-                    await context.shareToneEntity(
-                      tone: _currentTone,
-                      additionalMessage:
-                          'Desde la categoría: ${widget.categoryTitle}',
-                    );
-
-                    _showSnackBar(
-                      context,
-                      'Compartiendo "${_currentTone.title}"',
-                    );
-                  } catch (e) {
-                    _showSnackBar(
-                      context,
-                      'Error al compartir: ${e.toString()}',
-                    );
-                  }
-                },
-              ),
-              if (_currentTone.requiresAttribution &&
-                  _currentTone.attributionText != null) ...[
-                ListTile(
-                  leading: const Icon(Icons.info_outline),
-                  title: const Text('Información de atribución'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _showAttributionDialog(context);
-                  },
-                ),
-              ],
-              const SizedBox(height: 16),
-            ],
-          ),
-        );
-      },
-    );
-  }
 
   void _showSnackBar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(

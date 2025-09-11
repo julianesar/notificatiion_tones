@@ -32,19 +32,6 @@ class _DownloadsPageState extends State<DownloadsPage> {
       appBar: AppBar(
         title: const Text('Mis Descargas'),
         actions: [
-          Consumer<DownloadsProvider>(
-            builder: (context, provider, child) {
-              final completedDownloads = provider.downloadsList
-                  .where((d) => d.status == DownloadStatus.completed)
-                  .toList();
-              if (completedDownloads.isEmpty) return const SizedBox();
-              return IconButton(
-                icon: const Icon(Icons.share),
-                onPressed: () => _showShareDownloads(context, completedDownloads),
-                tooltip: 'Compartir descargas',
-              );
-            },
-          ),
           IconButton(
             icon: const Icon(Icons.folder_open),
             onPressed: () => _showStorageInfo(context),
@@ -194,13 +181,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
                           requiresAttribution: completedDownloads[index].requiresAttribution,
                           attributionText: completedDownloads[index].attributionText,
                           showFavoriteButton: false,
-                          showDeleteButtonInTrailing: true, // Mostrar botón de borrar directo en el trailing
-                          // Modal options - mostrar todas las opciones aplicables
-                          showOpenPlayerOption: true,
-                          showDownloadOption: false, // Ya está descargado
-                          showShareOption: true,
-                          showDeleteOption: true,
-                          showAttributionOption: true,
+                          showDeleteButtonInTrailing: true,
                           onTap: () => _openLocalPlayer(context, completedDownloads[index]),
                           onDelete: () => _confirmDelete(context, completedDownloads[index]),
                         ),

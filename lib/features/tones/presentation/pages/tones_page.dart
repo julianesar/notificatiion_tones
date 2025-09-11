@@ -131,11 +131,6 @@ class _TonesPageState extends State<TonesPage> {
                   onTap: () => _openPlayer(context, tone),
                   showFavoriteButton: true,
                   showDeleteButtonInTrailing: false,
-                  showOpenPlayerOption: true,
-                  showDownloadOption: false,
-                  showShareOption: true,
-                  showDeleteOption: false,
-                  showAttributionOption: true,
                 );
               },
             ),
