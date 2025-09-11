@@ -5,8 +5,11 @@ import 'package:permission_handler/permission_handler.dart';
 abstract class PermissionsService {
   Future<bool> requestStoragePermissions();
   Future<bool> hasStoragePermissions();
+  Future<bool> requestSystemSettingsPermissions();
+  Future<bool> hasSystemSettingsPermissions();
   Future<int> getAndroidSdkVersion();
   Future<String> getRequiredPermissionMessage();
+  Future<String> getSystemSettingsPermissionMessage();
 }
 
 class PermissionsServiceImpl implements PermissionsService {
@@ -68,5 +71,46 @@ class PermissionsServiceImpl implements PermissionsService {
       return 'Se requiere permiso de almacenamiento para descargar tonos.\n\n'
              'Ve a Configuración > Aplicaciones > Sonidos de Notificaciones > Permisos > Almacenamiento';
     }
+  }
+
+  @override
+  Future<bool> hasSystemSettingsPermissions() async {
+    if (!Platform.isAndroid) return true;
+    
+    try {
+      // Use Permission.manageExternalStorage or check if we can modify system settings
+      // For Android API 23+, we need to check Settings.System.canWrite permission
+      return await Permission.manageExternalStorage.isGranted;
+    } catch (e) {
+      print('Error checking system settings permission: $e');
+      return false;
+    }
+  }
+
+  @override
+  Future<bool> requestSystemSettingsPermissions() async {
+    if (!Platform.isAndroid) return true;
+    
+    try {
+      // This will redirect to system settings where user needs to manually enable
+      final status = await Permission.manageExternalStorage.request();
+      return status.isGranted;
+    } catch (e) {
+      print('Error requesting system settings permission: $e');
+      return false;
+    }
+  }
+
+  @override
+  Future<String> getSystemSettingsPermissionMessage() async {
+    if (!Platform.isAndroid) return '';
+    
+    return 'Para configurar tonos de llamada, notificaciones y alarmas, necesitas permitir que la app modifique la configuración del sistema.\n\n'
+           'Esta función requiere el permiso "Modificar configuración del sistema" que te permitirá:\n\n'
+           '• Establecer tonos de llamada personalizados\n'
+           '• Configurar sonidos de notificación\n'
+           '• Definir alarmas personalizadas\n'
+           '• Asignar tonos a contactos específicos\n\n'
+           'Al tocar "Permitir", serás llevado a la configuración donde debes activar este permiso.';
   }
 }

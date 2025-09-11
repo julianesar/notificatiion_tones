@@ -11,6 +11,9 @@
     
     <!-- Permiso para acceder a información del dispositivo -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    
+    <!-- Permisos para configurar tonos de llamada y notificaciones -->
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
     <application
         android:label="my_new_app"
         android:name="${applicationName}"

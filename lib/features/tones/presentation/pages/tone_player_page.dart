@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../domain/entities/tone.dart';
 import '../../../../core/services/audio_service.dart';
 import '../../../../core/services/download_flow_service.dart';
 import '../../../../core/services/share_service.dart';
+import '../../../../core/services/ringtone_management_service.dart';
+import '../../../../core/services/ringtone_configuration_service.dart';
+import '../../../../core/services/permissions_service.dart';
+import '../../../../shared/widgets/system_settings_permission_dialog.dart';
+import '../../../../core/di/service_locator.dart';
 import '../../../downloads/presentation/providers/downloads_provider.dart';
+import '../../../downloads/domain/entities/download_info.dart';
 import '../../../../core/navigation/navigation_service.dart';
 
 class TonePlayerPage extends StatefulWidget {
@@ -147,7 +152,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
     );
   }
 
-  Future<void> _downloadAndConfigureTone() async {
+  Future<void> _downloadTone() async {
     await DownloadFlowService.downloadToneWithPermissionsAndConfigure(
       context: context,
       toneId: _currentTone.id,
@@ -156,6 +161,155 @@ class _TonePlayerPageState extends State<TonePlayerPage>
       requiresAttribution: _currentTone.requiresAttribution,
       attributionText: _currentTone.attributionText,
       onDownloadSuccess: _showRingtoneConfigurationModal,
+    );
+  }
+
+  // Professional method to wait for user to return and verify permission status
+  Future<bool> _waitForPermissionAndVerify() async {
+    bool permissionGranted = false;
+    int attempts = 0;
+    const maxAttempts = 15; // Give user more time (15 seconds)
+
+    // Show professional waiting dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Configurando Permisos',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 20),
+            Text(
+              'Esperando que actives el permiso "Modificar configuración del sistema" en la configuración de Android.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Vuelve a la app cuando hayas activado el permiso.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    // Monitor permission status while user is in system settings
+    while (attempts < maxAttempts) {
+      await Future.delayed(const Duration(seconds: 1));
+      attempts++;
+
+      final hasPermission = await sl<RingtoneConfigurationService>()
+          .hasSystemSettingsPermission();
+      print(
+        'DEBUG: Permission check attempt $attempts/$maxAttempts: $hasPermission',
+      );
+
+      if (hasPermission) {
+        print(
+          'DEBUG: Permission granted! User successfully activated the permission.',
+        );
+        permissionGranted = true;
+        break;
+      }
+    }
+
+    // Close the waiting dialog
+    if (context.mounted) {
+      Navigator.of(context).pop();
+    }
+
+    // Handle the result professionally
+    if (permissionGranted) {
+      print(
+        'DEBUG: Permission verification successful - proceeding with configuration',
+      );
+      _showSnackBar(context, '✓ Permiso activado correctamente');
+      return true;
+    } else {
+      print(
+        'DEBUG: Permission verification failed - user did not activate permission',
+      );
+      await _showPermissionNotActivatedDialog();
+      return false;
+    }
+  }
+
+  // Professional dialog when user returns without activating permission
+  Future<void> _showPermissionNotActivatedDialog() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
+              SizedBox(width: 12),
+              Text('Permiso No Activado'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'No se detectó que el permiso "Modificar configuración del sistema" haya sido activado.',
+                style: TextStyle(fontSize: 16),
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Para configurar tonos personalizados necesitas:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 8),
+              Text('• Ir a Configuración de Android'),
+              Text('• Buscar esta aplicación'),
+              Text('• Activar "Modificar configuración del sistema"'),
+              SizedBox(height: 16),
+              Container(
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.blue[200]!),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.blue[700], size: 20),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Puedes intentar configurar el tono nuevamente después de activar el permiso.',
+                        style: TextStyle(color: Colors.blue[700], fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Entendido',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -168,7 +322,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
       ),
       builder: (context) {
         final colorScheme = Theme.of(context).colorScheme;
-        
+
         return SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -187,9 +341,9 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: Text(
                   'Configurar "${_currentTone.title}"',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -208,51 +362,41 @@ class _TonePlayerPageState extends State<TonePlayerPage>
               ),
               const SizedBox(height: 24),
               ListTile(
-                leading: Icon(
-                  Icons.phone,
-                  color: colorScheme.primary,
-                ),
+                leading: Icon(Icons.phone, color: colorScheme.primary),
                 title: const Text('Tono de llamada'),
-                subtitle: const Text('Configurar como tono principal de llamadas'),
+                subtitle: const Text(
+                  'Configurar como tono principal de llamadas',
+                ),
                 onTap: () {
                   Navigator.pop(context);
-                  _setAsCallRingtone();
+                  _configureAsCallRingtone();
                 },
               ),
               ListTile(
-                leading: Icon(
-                  Icons.notifications,
-                  color: colorScheme.primary,
-                ),
+                leading: Icon(Icons.notifications, color: colorScheme.primary),
                 title: const Text('Tono de notificación'),
                 subtitle: const Text('Configurar como tono de notificaciones'),
                 onTap: () {
                   Navigator.pop(context);
-                  _setAsNotificationRingtone();
+                  _configureAsNotificationRingtone();
                 },
               ),
               ListTile(
-                leading: Icon(
-                  Icons.alarm,
-                  color: colorScheme.primary,
-                ),
+                leading: Icon(Icons.alarm, color: colorScheme.primary),
                 title: const Text('Tono de alarma'),
                 subtitle: const Text('Configurar como tono de alarmas'),
                 onTap: () {
                   Navigator.pop(context);
-                  _setAsAlarmRingtone();
+                  _configureAsAlarmRingtone();
                 },
               ),
               ListTile(
-                leading: Icon(
-                  Icons.person,
-                  color: colorScheme.primary,
-                ),
+                leading: Icon(Icons.person, color: colorScheme.primary),
                 title: const Text('Tono de contacto'),
                 subtitle: const Text('Asignar a un contacto específico'),
                 onTap: () {
                   Navigator.pop(context);
-                  _setAsContactRingtone();
+                  _configureAsContactRingtone();
                 },
               ),
               const SizedBox(height: 16),
@@ -263,24 +407,290 @@ class _TonePlayerPageState extends State<TonePlayerPage>
     );
   }
 
-  void _setAsCallRingtone() {
-    // TODO: Implementar configuración como tono de llamada
-    _showSnackBar(context, 'Configurando como tono de llamada...');
+  // Method to check write settings permission and handle permission flow
+  Future<bool> _checkAndRequestWriteSettingsPermission() async {
+    final hasPermission = await sl<RingtoneConfigurationService>()
+        .hasSystemSettingsPermission();
+    print('DEBUG: hasSystemSettingsPermission = $hasPermission');
+
+    if (hasPermission) {
+      return true; // Already has permission, proceed with configuration
+    }
+
+    // Show permission dialog
+    final permissionsService = sl<PermissionsService>();
+    final permissionMessage = await permissionsService
+        .getSystemSettingsPermissionMessage();
+
+    final bool? userAccepted = await SystemSettingsPermissionDialog.show(
+      context: context,
+      title: 'Permiso Requerido',
+      message: permissionMessage,
+      onContinue: () async {
+        await sl<RingtoneConfigurationService>()
+            .requestSystemSettingsPermission();
+      },
+    );
+
+    if (userAccepted != true) {
+      _showSnackBar(context, 'Se requiere permiso para configurar tonos');
+      return false;
+    }
+
+    // User accepted - wait for them to return from settings and verify permission
+    print('DEBUG: Waiting for user to return from system settings');
+    final permissionResult = await _waitForPermissionAndVerify();
+
+    return permissionResult;
   }
 
-  void _setAsNotificationRingtone() {
-    // TODO: Implementar configuración como tono de notificación
-    _showSnackBar(context, 'Configurando como tono de notificación...');
+  // New separate configure methods that check permissions first
+  Future<void> _configureAsCallRingtone() async {
+    // First check if we have write settings permission
+    final hasPermission = await _checkAndRequestWriteSettingsPermission();
+    if (!hasPermission) return; // User denied permission or couldn't grant it
+
+    // If we have permission, proceed to configure the downloaded ringtone
+    await _configureDownloadedRingtone(
+      actionName: 'tono de llamada',
+      configurationFunction: (context, filePath) async {
+        final service = sl<RingtoneManagementService>();
+        return await service.setAsCallRingtone(
+          context,
+          filePath,
+          _currentTone.title,
+        );
+      },
+    );
   }
 
-  void _setAsAlarmRingtone() {
-    // TODO: Implementar configuración como tono de alarma
-    _showSnackBar(context, 'Configurando como tono de alarma...');
+  Future<void> _configureAsNotificationRingtone() async {
+    // First check if we have write settings permission
+    final hasPermission = await _checkAndRequestWriteSettingsPermission();
+    if (!hasPermission) return; // User denied permission or couldn't grant it
+
+    // If we have permission, proceed to configure the downloaded ringtone
+    await _configureDownloadedRingtone(
+      actionName: 'tono de notificación',
+      configurationFunction: (context, filePath) async {
+        final service = sl<RingtoneManagementService>();
+        return await service.setAsNotificationRingtone(
+          context,
+          filePath,
+          _currentTone.title,
+        );
+      },
+    );
   }
 
-  void _setAsContactRingtone() {
-    // TODO: Implementar configuración como tono de contacto
-    _showSnackBar(context, 'Configurando como tono de contacto...');
+  Future<void> _configureAsAlarmRingtone() async {
+    // First check if we have write settings permission
+    final hasPermission = await _checkAndRequestWriteSettingsPermission();
+    if (!hasPermission) return; // User denied permission or couldn't grant it
+
+    // If we have permission, proceed to configure the downloaded ringtone
+    await _configureDownloadedRingtone(
+      actionName: 'tono de alarma',
+      configurationFunction: (context, filePath) async {
+        final service = sl<RingtoneManagementService>();
+        return await service.setAsAlarmRingtone(
+          context,
+          filePath,
+          _currentTone.title,
+        );
+      },
+    );
+  }
+
+  Future<void> _configureAsContactRingtone() async {
+    // First check if we have write settings permission
+    final hasPermission = await _checkAndRequestWriteSettingsPermission();
+    if (!hasPermission) return; // User denied permission or couldn't grant it
+
+    // If we have permission, proceed to configure the downloaded ringtone
+    await _configureDownloadedRingtone(
+      actionName: 'tono de contacto',
+      configurationFunction: (context, filePath) async {
+        final service = sl<RingtoneManagementService>();
+        return await service.setAsContactRingtone(
+          context,
+          filePath,
+          _currentTone.title,
+        );
+      },
+    );
+  }
+
+  // Method to configure downloaded ringtone (assumes permission is already granted)
+  Future<void> _configureDownloadedRingtone({
+    required String actionName,
+    required Future<RingtoneConfigurationResult> Function(BuildContext, String)
+    configurationFunction,
+  }) async {
+    try {
+      // Get the downloaded file path directly from the provider
+      final downloadsProvider = context.read<DownloadsProvider>();
+
+      // Check if the current tone is downloaded
+      if (!downloadsProvider.isDownloaded(_currentTone.id)) {
+        _showSnackBar(
+          context,
+          'Archivo no encontrado. Descarga el archivo primero.',
+        );
+        return;
+      }
+
+      // Debug: Check what's in the downloads map
+      print('DEBUG: Looking for tone ID: ${_currentTone.id}');
+      print(
+        'DEBUG: Available download IDs: ${downloadsProvider.downloads.keys.toList()}',
+      );
+      print('DEBUG: Downloads map content:');
+      downloadsProvider.downloads.forEach((key, value) {
+        print(
+          '  ID: $key -> fileName: ${value.fileName}, localPath: ${value.localPath}, status: ${value.status}',
+        );
+      });
+
+      // Get the download info by searching for matching fileName (since download.id != tone.id)
+      DownloadInfo? downloadInfo;
+      for (final download in downloadsProvider.downloads.values) {
+        if (download.fileName.contains(_currentTone.id) && download.status == DownloadStatus.completed) {
+          downloadInfo = download;
+          break;
+        }
+      }
+      if (downloadInfo == null) {
+        _showSnackBar(
+          context,
+          'Error: No se encontró el archivo descargado para el ID: ${_currentTone.id}',
+        );
+        return;
+      }
+
+      if (downloadInfo.localPath.isEmpty) {
+        _showSnackBar(
+          context,
+          'Error: La ruta del archivo descargado está vacía.',
+        );
+        return;
+      }
+
+      final filePath = downloadInfo.localPath;
+      print('DEBUG: Using direct file path: $filePath');
+
+      // Configure the ringtone (permission already verified)
+      _showSnackBar(context, 'Configurando $actionName...');
+      final result = await configurationFunction(context, filePath);
+
+      if (result.success) {
+        _showSuccessMessage(actionName);
+      } else if (result.requiresManualConfiguration) {
+        _showConfigurationInstructionsDialog(
+          result.errorMessage ?? 'Configuración manual requerida',
+        );
+      } else {
+        _showSnackBar(context, 'Error: ${result.errorMessage}');
+      }
+    } catch (e) {
+      _showSnackBar(
+        context,
+        'Error al configurar $actionName: ${e.toString()}',
+      );
+    }
+  }
+
+  // Professional success message for successful ringtone configuration
+  void _showSuccessMessage(String actionName) {
+    // Show snackbar first
+    _showSnackBar(
+      context,
+      '✅ ${actionName.substring(0, 1).toUpperCase()}${actionName.substring(1)} configurado exitosamente',
+    );
+
+    // Show professional success dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.green, size: 28),
+              SizedBox(width: 12),
+              Text('¡Configuración Exitosa!'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'El tono "${_currentTone.title}" se ha configurado correctamente como $actionName.',
+                style: TextStyle(fontSize: 16),
+              ),
+              SizedBox(height: 16),
+              Container(
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.green[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.green[200]!),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      color: Colors.green[700],
+                      size: 20,
+                    ),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Los cambios se aplicaron inmediatamente. Ya puedes usar tu nuevo tono personalizado.',
+                        style: TextStyle(
+                          color: Colors.green[700],
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Excelente',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.green[700],
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showConfigurationInstructionsDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Configuración Manual Requerida'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Entendido'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _seekTo(double value) async {
@@ -571,7 +981,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                   // Configure Sound Button
                   IconButton(
                     onPressed: () async {
-                      await _downloadAndConfigureTone();
+                      await _downloadTone();
                     },
                     icon: Icon(
                       Icons.settings,
@@ -604,7 +1014,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
   void _showOptionsMenu(BuildContext context) {
     // Refrescar el estado de descargas antes de mostrar el modal
     context.read<DownloadsProvider>().refreshDownloadedFiles();
-    
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -631,48 +1041,54 @@ class _TonePlayerPageState extends State<TonePlayerPage>
               if (!widget.isFromDownloads)
                 Consumer<DownloadsProvider>(
                   builder: (context, downloadsProvider, child) {
-                    final isDownloaded = downloadsProvider.isDownloaded(_currentTone.id);
-                    final isDownloading = downloadsProvider.isDownloading(_currentTone.id);
-                    
+                    final isDownloaded = downloadsProvider.isDownloaded(
+                      _currentTone.id,
+                    );
+                    final isDownloading = downloadsProvider.isDownloading(
+                      _currentTone.id,
+                    );
+
                     return ListTile(
                       leading: Icon(
-                        isDownloaded 
-                            ? Icons.download_done 
-                            : isDownloading 
-                                ? Icons.downloading 
-                                : Icons.download,
-                        color: isDownloaded 
-                            ? Colors.green 
-                            : isDownloading 
-                                ? Colors.blue 
-                                : null,
+                        isDownloaded
+                            ? Icons.download_done
+                            : isDownloading
+                            ? Icons.downloading
+                            : Icons.download,
+                        color: isDownloaded
+                            ? Colors.green
+                            : isDownloading
+                            ? Colors.blue
+                            : null,
                       ),
                       title: Text(
-                        isDownloaded 
-                            ? 'Ya descargado' 
-                            : isDownloading 
-                                ? 'Descargando...' 
-                                : 'Descargar',
+                        isDownloaded
+                            ? 'Ya descargado'
+                            : isDownloading
+                            ? 'Descargando...'
+                            : 'Descargar',
                       ),
-                      subtitle: isDownloaded 
-                          ? const Text('Toca para ver descargas') 
+                      subtitle: isDownloaded
+                          ? const Text('Toca para ver descargas')
                           : null,
                       enabled: !isDownloading,
-                      onTap: isDownloaded 
+                      onTap: isDownloaded
                           ? () {
                               Navigator.pop(context);
                               NavigationService.instance.navigateToDownloads();
                             }
-                          : isDownloading 
-                              ? null
-                              : () async {
-                                  Navigator.pop(context);
-                                  // Usar un pequeño delay para permitir que el modal se cierre completamente
-                                  await Future.delayed(const Duration(milliseconds: 100));
-                                  if (mounted) {
-                                    await _downloadToneWithFeedback();
-                                  }
-                                },
+                          : isDownloading
+                          ? null
+                          : () async {
+                              Navigator.pop(context);
+                              // Usar un pequeño delay para permitir que el modal se cierre completamente
+                              await Future.delayed(
+                                const Duration(milliseconds: 100),
+                              );
+                              if (mounted) {
+                                await _downloadToneWithFeedback();
+                              }
+                            },
                     );
                   },
                 ),
@@ -684,16 +1100,24 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                   try {
                     await context.shareToneEntity(
                       tone: _currentTone,
-                      additionalMessage: 'Desde la categoría: ${widget.categoryTitle}',
+                      additionalMessage:
+                          'Desde la categoría: ${widget.categoryTitle}',
                     );
-                    
-                    _showSnackBar(context, 'Compartiendo "${_currentTone.title}"');
+
+                    _showSnackBar(
+                      context,
+                      'Compartiendo "${_currentTone.title}"',
+                    );
                   } catch (e) {
-                    _showSnackBar(context, 'Error al compartir: ${e.toString()}');
+                    _showSnackBar(
+                      context,
+                      'Error al compartir: ${e.toString()}',
+                    );
                   }
                 },
               ),
-              if (_currentTone.requiresAttribution && _currentTone.attributionText != null) ...[
+              if (_currentTone.requiresAttribution &&
+                  _currentTone.attributionText != null) ...[
                 ListTile(
                   leading: const Icon(Icons.info_outline),
                   title: const Text('Información de atribución'),

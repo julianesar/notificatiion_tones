@@ -3,6 +3,8 @@ import 'package:get_it/get_it.dart';
 import '../services/permissions_service.dart';
 import '../services/storage_service.dart';
 import '../services/media_store_service.dart';
+import '../services/ringtone_configuration_service.dart';
+import '../services/ringtone_management_service.dart';
 import '../network/api_client.dart';
 import '../../features/downloads/data/datasources/download_local_ds.dart';
 import '../../features/downloads/data/datasources/download_remote_ds.dart';
@@ -30,6 +32,18 @@ Future<void> init() async {
   
   sl.registerLazySingleton<MediaStoreService>(
     () => MediaStoreServiceImpl(),
+  );
+
+  // Ringtone services
+  sl.registerLazySingleton<RingtoneConfigurationService>(
+    () => RingtoneConfigurationServiceImpl(),
+  );
+
+  sl.registerLazySingleton<RingtoneManagementService>(
+    () => RingtoneManagementServiceImpl(
+      permissionsService: sl(),
+      ringtoneConfigurationService: sl(),
+    ),
   );
 
   // Downloads - Data sources
