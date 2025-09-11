@@ -1076,60 +1076,6 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                 ),
               ),
               const SizedBox(height: 20),
-              if (!widget.isFromDownloads)
-                Consumer<DownloadsProvider>(
-                  builder: (context, downloadsProvider, child) {
-                    final isDownloaded = downloadsProvider.isDownloaded(
-                      _currentTone.id,
-                    );
-                    final isDownloading = downloadsProvider.isDownloading(
-                      _currentTone.id,
-                    );
-
-                    return ListTile(
-                      leading: Icon(
-                        isDownloaded
-                            ? Icons.download_done
-                            : isDownloading
-                            ? Icons.downloading
-                            : Icons.download,
-                        color: isDownloaded
-                            ? Colors.green
-                            : isDownloading
-                            ? Colors.blue
-                            : null,
-                      ),
-                      title: Text(
-                        isDownloaded
-                            ? 'Ya descargado'
-                            : isDownloading
-                            ? 'Descargando...'
-                            : 'Descargar',
-                      ),
-                      subtitle: isDownloaded
-                          ? const Text('Toca para ver descargas')
-                          : null,
-                      enabled: !isDownloading,
-                      onTap: isDownloaded
-                          ? () {
-                              Navigator.pop(context);
-                              NavigationService.instance.navigateToDownloads();
-                            }
-                          : isDownloading
-                          ? null
-                          : () async {
-                              Navigator.pop(context);
-                              // Usar un pequeño delay para permitir que el modal se cierre completamente
-                              await Future.delayed(
-                                const Duration(milliseconds: 100),
-                              );
-                              if (mounted) {
-                                await _downloadToneWithFeedback();
-                              }
-                            },
-                    );
-                  },
-                ),
               ListTile(
                 leading: const Icon(Icons.share),
                 title: const Text('Compartir'),

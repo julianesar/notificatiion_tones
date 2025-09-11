@@ -155,7 +155,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   showFavoriteButton: true,
                   showDeleteButtonInTrailing: false,
                   showOpenPlayerOption: true,
-                  showDownloadOption: true,
+                  showDownloadOption: false,
                   showShareOption: true,
                   showDeleteOption: false,
                   showAttributionOption: true,

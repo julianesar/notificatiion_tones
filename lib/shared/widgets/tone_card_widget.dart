@@ -41,7 +41,7 @@ class ToneCardWidget extends StatelessWidget {
     this.showFavoriteButton = true,
     this.showDeleteButtonInTrailing = false,
     this.showOpenPlayerOption = true,
-    this.showDownloadOption = true,
+    this.showDownloadOption = false,
     this.showShareOption = true,
     this.showDeleteOption = false,
     this.showAttributionOption = true,

@@ -132,7 +132,7 @@ class _TonesPageState extends State<TonesPage> {
                   showFavoriteButton: true,
                   showDeleteButtonInTrailing: false,
                   showOpenPlayerOption: true,
-                  showDownloadOption: true,
+                  showDownloadOption: false,
                   showShareOption: true,
                   showDeleteOption: false,
                   showAttributionOption: true,
