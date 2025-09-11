@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:path/path.dart' as path;
 import '../../domain/entities/tone.dart';
 import '../../../../core/services/audio_service.dart';
 import '../../../../core/services/download_flow_service.dart';
@@ -8,10 +9,12 @@ import '../../../../core/services/share_service.dart';
 import '../../../../core/services/ringtone_management_service.dart';
 import '../../../../core/services/ringtone_configuration_service.dart';
 import '../../../../core/services/permissions_service.dart';
+import '../../../../core/services/media_store_service.dart';
 import '../../../../shared/widgets/system_settings_permission_dialog.dart';
 import '../../../../core/di/service_locator.dart';
 import '../../../downloads/presentation/providers/downloads_provider.dart';
 import '../../../downloads/domain/entities/download_info.dart';
+import '../../../downloads/domain/repositories/download_repository.dart';
 import '../../../../core/navigation/navigation_service.dart';
 
 class TonePlayerPage extends StatefulWidget {
@@ -535,27 +538,10 @@ class _TonePlayerPageState extends State<TonePlayerPage>
     configurationFunction,
   }) async {
     try {
-      // Get the downloaded file path directly from the provider
-      final downloadsProvider = context.read<DownloadsProvider>();
-
-      // Refresh the download data to ensure we have the latest state
-      await downloadsProvider.refreshDownloadedFiles();
-
-      // Debug: Check what's in the downloads map
-      print('DEBUG: Looking for tone ID: ${_currentTone.id}');
-      print(
-        'DEBUG: Available download IDs: ${downloadsProvider.downloads.keys.toList()}',
-      );
-      print('DEBUG: Downloads map content:');
-      downloadsProvider.downloads.forEach((key, value) {
-        print(
-          '  ID: $key -> fileName: ${value.fileName}, localPath: ${value.localPath}, status: ${value.status}',
-        );
-      });
-      print('DEBUG: Downloaded tone IDs: ${downloadsProvider.downloadedToneIds}');
-
-      // First, check using the provider's built-in method
-      if (!downloadsProvider.isDownloaded(_currentTone.id)) {
+      // Get the downloaded file path directly using the exact storage path
+      final filePath = await _getDownloadedFilePath(_currentTone.id, _currentTone.title, _currentTone.url);
+      
+      if (filePath == null) {
         _showSnackBar(
           context,
           'Archivo no encontrado. Descarga el archivo primero.',
@@ -563,27 +549,8 @@ class _TonePlayerPageState extends State<TonePlayerPage>
         return;
       }
 
-      // Use multiple strategies to find the downloaded file
-      DownloadInfo? downloadInfo = await _findDownloadedFile(downloadsProvider, _currentTone.id);
-      
-      if (downloadInfo == null) {
-        _showSnackBar(
-          context,
-          'Error: No se encontró el archivo descargado para el ID: ${_currentTone.id}. Intenta descargar nuevamente.',
-        );
-        return;
-      }
-
-      if (downloadInfo.localPath.isEmpty) {
-        _showSnackBar(
-          context,
-          'Error: La ruta del archivo descargado está vacía.',
-        );
-        return;
-      }
-
       // Verify the file actually exists on disk
-      final file = File(downloadInfo.localPath);
+      final file = File(filePath);
       if (!await file.exists()) {
         _showSnackBar(
           context,
@@ -592,11 +559,9 @@ class _TonePlayerPageState extends State<TonePlayerPage>
         return;
       }
 
-      final filePath = downloadInfo.localPath;
-      print('DEBUG: Using verified file path: $filePath');
+      print('DEBUG: Using direct file path: $filePath');
 
       // Configure the ringtone (permission already verified)
-      _showSnackBar(context, 'Configurando $actionName...');
       final result = await configurationFunction(context, filePath);
 
       if (result.success) {
@@ -616,87 +581,72 @@ class _TonePlayerPageState extends State<TonePlayerPage>
     }
   }
 
-  // Professional method to find downloaded files using multiple strategies
-  Future<DownloadInfo?> _findDownloadedFile(DownloadsProvider downloadsProvider, String toneId) async {
-    // Strategy 1: Direct fileName contains search (current method)
-    for (final download in downloadsProvider.downloads.values) {
-      if (download.fileName.contains(toneId) && download.status == DownloadStatus.completed) {
-        print('DEBUG: Found using Strategy 1 (fileName.contains): ${download.fileName}');
-        return download;
-      }
-    }
-
-    // Strategy 2: Extract toneId from fileName and compare
-    for (final download in downloadsProvider.downloads.values) {
-      if (download.status == DownloadStatus.completed) {
-        final extractedId = _extractToneIdFromFileName(download.fileName);
-        if (extractedId == toneId) {
-          print('DEBUG: Found using Strategy 2 (extracted ID match): ${download.fileName}');
-          return download;
+  // Professional method to get the exact downloaded file path
+  Future<String?> _getDownloadedFilePath(String toneId, String title, String url) async {
+    try {
+      // Method 1: Use the DownloadRepository's built-in method (most reliable)
+      final downloadRepository = sl<DownloadRepository>();
+      final repoPath = await downloadRepository.getDownloadedFilePath(toneId);
+      
+      if (repoPath != null) {
+        final file = File(repoPath);
+        if (await file.exists()) {
+          print('DEBUG: Found file using repository method: $repoPath');
+          return repoPath;
         }
       }
-    }
-
-    // Strategy 3: Check if toneId appears at the beginning of fileName
-    for (final download in downloadsProvider.downloads.values) {
-      if (download.status == DownloadStatus.completed && download.fileName.startsWith(toneId + '_')) {
-        print('DEBUG: Found using Strategy 3 (startsWith): ${download.fileName}');
-        return download;
+      
+      // Method 2: Construct exact path using same logic as download
+      final mediaStoreService = sl<MediaStoreService>();
+      final publicAudioDir = await mediaStoreService.getPublicAudioDirectory();
+      
+      // Construct the exact filename using the same logic as download
+      final fileName = _generateFileName(toneId, title, url);
+      final exactPath = '$publicAudioDir/Tonos/$fileName';
+      
+      print('DEBUG: Checking exact constructed path: $exactPath');
+      
+      // Check if file exists at exact location
+      final exactFile = File(exactPath);
+      if (await exactFile.exists()) {
+        print('DEBUG: Found file using exact path construction');
+        return exactPath;
       }
+      
+      print('DEBUG: File not found for toneId: $toneId');
+      return null;
+      
+    } catch (e) {
+      print('DEBUG: Error getting downloaded file path: $e');
+      return null;
     }
-
-    // Strategy 4: Reverse search - check if any part of toneId matches
-    for (final download in downloadsProvider.downloads.values) {
-      if (download.status == DownloadStatus.completed) {
-        final fileName = download.fileName.toLowerCase();
-        final lowerToneId = toneId.toLowerCase();
-        
-        // Split toneId by common separators and check each part
-        final toneIdParts = lowerToneId.split(RegExp(r'[-_]+'));
-        bool foundMatch = true;
-        for (final part in toneIdParts) {
-          if (part.isNotEmpty && !fileName.contains(part)) {
-            foundMatch = false;
-            break;
-          }
-        }
-        
-        if (foundMatch && toneIdParts.isNotEmpty) {
-          print('DEBUG: Found using Strategy 4 (partial match): ${download.fileName}');
-          return download;
-        }
-      }
-    }
-
-    print('DEBUG: No download found for toneId: $toneId');
-    return null;
   }
 
-  // Helper method to extract toneId from fileName (similar to the one in downloads_provider)
-  String _extractToneIdFromFileName(String fileName) {
-    // Remove extension first
-    final nameWithoutExtension = fileName.contains('.') 
-        ? fileName.substring(0, fileName.lastIndexOf('.'))
-        : fileName;
+  // Generate filename using the EXACT same logic as DownloadRepositoryImpl
+  String _generateFileName(String toneId, String title, String url) {
+    String cleanTitle = title
+        .replaceAll(RegExp(r'[^\w\s-]'), '')
+        .replaceAll(RegExp(r'\s+'), '_')
+        .trim();
     
-    // Find the first underscore that separates toneId from cleanTitle
-    final underscoreIndex = nameWithoutExtension.indexOf('_');
-    if (underscoreIndex != -1) {
-      return nameWithoutExtension.substring(0, underscoreIndex);
+    if (cleanTitle.isEmpty) {
+      cleanTitle = 'tone_${DateTime.now().millisecondsSinceEpoch}';
     }
     
-    return nameWithoutExtension;
+    // Use path.extension exactly like DownloadRepositoryImpl does
+    String extension = path.extension(url);
+    if (extension.isEmpty || !extension.contains('.')) {
+      extension = '.mp3';
+    }
+    
+    // Include toneId at the beginning of filename - same as repository
+    return '${toneId}_$cleanTitle$extension';
   }
+
 
   // Professional success message for successful ringtone configuration
   void _showSuccessMessage(String actionName) {
-    // Show snackbar first
-    _showSnackBar(
-      context,
-      '✅ ${actionName.substring(0, 1).toUpperCase()}${actionName.substring(1)} configurado exitosamente',
-    );
-
-    // Show professional success dialog
+    // Show only success dialog (no duplicate snackbar)
     showDialog(
       context: context,
       barrierDismissible: false,
