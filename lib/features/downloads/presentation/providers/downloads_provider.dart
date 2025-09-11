@@ -57,18 +57,40 @@ class DownloadsProvider extends ChangeNotifier {
   }
 
   bool isDownloaded(String toneId) {
-    final result = _downloadedToneIds.contains(toneId);
-    print('DEBUG: isDownloaded($toneId) = $result. Downloaded IDs: $_downloadedToneIds'); // Debug
-    print('DEBUG: ToneId length: ${toneId.length}, type: ${toneId.runtimeType}'); // Debug
-    print('DEBUG: ToneId bytes: ${toneId.codeUnits}'); // Debug
-    
-    // También verificar si hay alguna coincidencia parcial
-    final partialMatches = _downloadedToneIds.where((id) => id.contains(toneId) || toneId.contains(id)).toList();
-    if (partialMatches.isNotEmpty) {
-      print('DEBUG: Partial matches found: $partialMatches'); // Debug
+    // Primary check: direct ID match
+    if (_downloadedToneIds.contains(toneId)) {
+      print('DEBUG: isDownloaded($toneId) = true (direct match)');
+      return true;
     }
     
-    return result;
+    // Secondary check: look through actual download files
+    for (final download in _downloads.values) {
+      if (download.status == DownloadStatus.completed) {
+        // Strategy 1: fileName contains toneId
+        if (download.fileName.contains(toneId)) {
+          print('DEBUG: isDownloaded($toneId) = true (fileName contains)');
+          return true;
+        }
+        
+        // Strategy 2: extract toneId from fileName
+        final extractedId = _extractToneIdFromFileName(download.fileName);
+        if (extractedId == toneId) {
+          print('DEBUG: isDownloaded($toneId) = true (extracted ID match)');
+          return true;
+        }
+        
+        // Strategy 3: fileName starts with toneId
+        if (download.fileName.startsWith(toneId + '_')) {
+          print('DEBUG: isDownloaded($toneId) = true (startsWith match)');
+          return true;
+        }
+      }
+    }
+    
+    print('DEBUG: isDownloaded($toneId) = false. Downloaded IDs: $_downloadedToneIds');
+    print('DEBUG: Available files: ${_downloads.values.where((d) => d.status == DownloadStatus.completed).map((d) => d.fileName).toList()}');
+    
+    return false;
   }
 
   double getDownloadProgress(String toneId) {
@@ -311,83 +333,59 @@ class DownloadsProvider extends ChangeNotifier {
 
   String _extractToneIdFromFileName(String fileName) {
     // El nombre del archivo tiene formato: toneId_cleanTitle.extension
-    // Estrategia: buscar el patrón donde toneId típicamente contiene __ o - 
-    // mientras que cleanTitle empieza con una mayúscula y usa solo _
+    // Estrategia mejorada: priorizar métodos más confiables
     
     // Remover la extensión primero
     final nameWithoutExtension = fileName.contains('.') 
         ? fileName.substring(0, fileName.lastIndexOf('.'))
         : fileName;
     
-    print('DEBUG: Extracting from: $nameWithoutExtension'); // Debug
+    print('DEBUG: Extracting toneId from: $nameWithoutExtension');
     
-    // Buscar todos los _ en el string
-    final underscores = <int>[];
-    for (int i = 0; i < nameWithoutExtension.length; i++) {
-      if (nameWithoutExtension[i] == '_') {
-        underscores.add(i);
-      }
-    }
-    
-    // Buscar el _ que separa toneId de cleanTitle
-    // El cleanTitle típicamente empieza con una palabra en mayúscula
-    for (final underscoreIndex in underscores) {
-      final beforeUnderscore = nameWithoutExtension.substring(0, underscoreIndex);
-      final afterUnderscore = nameWithoutExtension.substring(underscoreIndex + 1);
-      
-      if (afterUnderscore.isNotEmpty) {
-        final firstChar = afterUnderscore[0];
-        
-        // Si después del _ hay una mayúscula, podría ser el inicio del cleanTitle
-        if (firstChar.toUpperCase() == firstChar && firstChar.toLowerCase() != firstChar) {
-          // Verificar que el beforeUnderscore sea un toneId válido:
-          // 1. Contiene números
-          // 2. Contiene __ o - (típico de freesound IDs)
-          final hasNumbers = RegExp(r'\d').hasMatch(beforeUnderscore);
-          final hasDoubleUnderscore = beforeUnderscore.contains('__');
-          final endsWithDash = beforeUnderscore.endsWith('-');
-          final hasHyphen = beforeUnderscore.contains('-');
-          
-          if (hasNumbers && (hasDoubleUnderscore || endsWithDash || hasHyphen)) {
-            // Verificar que no sea solo una parte del cleanTitle
-            // El cleanTitle suele tener patrones como Word_Word_Number
-            final afterParts = afterUnderscore.split('_');
-            final isLikelyCleanTitle = afterParts.length >= 2 && 
-                                     afterParts.every((part) => part.isNotEmpty) &&
-                                     RegExp(r'^\d+$').hasMatch(afterParts.last);
-            
-            if (isLikelyCleanTitle) {
-              print('DEBUG: Found tone ID at underscore $underscoreIndex: $beforeUnderscore'); // Debug
-              return beforeUnderscore;
-            }
-          } else if (hasNumbers) {
-            // Caso especial para IDs simples como "slime_000"
-            // Verificar que afterUnderscore sea claramente un cleanTitle
-            final afterParts = afterUnderscore.split('_');
-            final isSimpleCleanTitle = afterParts.length >= 2 && 
-                                      afterParts.every((part) => part.isNotEmpty) &&
-                                      afterParts[0][0].toUpperCase() == afterParts[0][0] &&
-                                      RegExp(r'^\d+$').hasMatch(afterParts.last) &&
-                                      beforeUnderscore.contains(afterParts.last); // El número debe coincidir
-            
-            if (isSimpleCleanTitle) {
-              print('DEBUG: Found simple tone ID at underscore $underscoreIndex: $beforeUnderscore'); // Debug
-              return beforeUnderscore;
-            }
-          }
-        }
-      }
-    }
-    
-    // Fallback: usar el método anterior para casos simples
+    // Método 1: Buscar el primer _ que separe un ID válido de un título
     final parts = nameWithoutExtension.split('_');
-    if (parts.isNotEmpty) {
-      final fallbackId = parts.first;
-      print('DEBUG: Using fallback extraction: $fallbackId'); // Debug
-      return fallbackId;
+    if (parts.length >= 2) {
+      final potentialId = parts[0];
+      final remainingParts = parts.skip(1).join('_');
+      
+      // Verificar si el primer parte parece ser un toneId válido
+      final hasNumbers = RegExp(r'\d').hasMatch(potentialId);
+      final hasValidIdChars = RegExp(r'^[a-zA-Z0-9_-]+$').hasMatch(potentialId);
+      final remainingStartsWithCapital = remainingParts.isNotEmpty && 
+                                        remainingParts[0].toUpperCase() == remainingParts[0] &&
+                                        remainingParts[0].toLowerCase() != remainingParts[0];
+      
+      if (hasNumbers && hasValidIdChars && (remainingStartsWithCapital || potentialId.contains('-') || potentialId.contains('__'))) {
+        print('DEBUG: Extracted toneId using Method 1: $potentialId');
+        return potentialId;
+      }
     }
     
-    print('DEBUG: Could not extract tone ID from: $fileName'); // Debug
+    // Método 2: Buscar patrones específicos de IDs como freesound__123456-7
+    final freesoundPattern = RegExp(r'^([a-zA-Z0-9_-]+__\d+-?\d*)_');
+    final freesoundMatch = freesoundPattern.firstMatch(nameWithoutExtension);
+    if (freesoundMatch != null) {
+      final extractedId = freesoundMatch.group(1)!;
+      print('DEBUG: Extracted toneId using Method 2 (freesound pattern): $extractedId');
+      return extractedId;
+    }
+    
+    // Método 3: Buscar cualquier secuencia que termine con números antes de _
+    final numberPattern = RegExp(r'^([a-zA-Z0-9_-]*\d+[a-zA-Z0-9_-]*)_');
+    final numberMatch = numberPattern.firstMatch(nameWithoutExtension);
+    if (numberMatch != null) {
+      final extractedId = numberMatch.group(1)!;
+      print('DEBUG: Extracted toneId using Method 3 (number pattern): $extractedId');
+      return extractedId;
+    }
+    
+    // Método 4: Fallback simple - primer segmento
+    if (parts.isNotEmpty && parts[0].isNotEmpty) {
+      print('DEBUG: Extracted toneId using Method 4 (fallback): ${parts[0]}');
+      return parts[0];
+    }
+    
+    print('DEBUG: Could not extract toneId from: $fileName');
     return '';
   }
 

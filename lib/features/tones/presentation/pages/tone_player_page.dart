@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../domain/entities/tone.dart';
@@ -313,7 +314,13 @@ class _TonePlayerPageState extends State<TonePlayerPage>
     );
   }
 
-  void _showRingtoneConfigurationModal() {
+  void _showRingtoneConfigurationModal() async {
+    // Refresh downloads before showing the modal
+    final downloadsProvider = context.read<DownloadsProvider>();
+    await downloadsProvider.refreshDownloadedFiles();
+    
+    if (!mounted) return;
+    
     showModalBottomSheet(
       context: context,
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -531,14 +538,8 @@ class _TonePlayerPageState extends State<TonePlayerPage>
       // Get the downloaded file path directly from the provider
       final downloadsProvider = context.read<DownloadsProvider>();
 
-      // Check if the current tone is downloaded
-      if (!downloadsProvider.isDownloaded(_currentTone.id)) {
-        _showSnackBar(
-          context,
-          'Archivo no encontrado. Descarga el archivo primero.',
-        );
-        return;
-      }
+      // Refresh the download data to ensure we have the latest state
+      await downloadsProvider.refreshDownloadedFiles();
 
       // Debug: Check what's in the downloads map
       print('DEBUG: Looking for tone ID: ${_currentTone.id}');
@@ -551,19 +552,24 @@ class _TonePlayerPageState extends State<TonePlayerPage>
           '  ID: $key -> fileName: ${value.fileName}, localPath: ${value.localPath}, status: ${value.status}',
         );
       });
+      print('DEBUG: Downloaded tone IDs: ${downloadsProvider.downloadedToneIds}');
 
-      // Get the download info by searching for matching fileName (since download.id != tone.id)
-      DownloadInfo? downloadInfo;
-      for (final download in downloadsProvider.downloads.values) {
-        if (download.fileName.contains(_currentTone.id) && download.status == DownloadStatus.completed) {
-          downloadInfo = download;
-          break;
-        }
+      // First, check using the provider's built-in method
+      if (!downloadsProvider.isDownloaded(_currentTone.id)) {
+        _showSnackBar(
+          context,
+          'Archivo no encontrado. Descarga el archivo primero.',
+        );
+        return;
       }
+
+      // Use multiple strategies to find the downloaded file
+      DownloadInfo? downloadInfo = await _findDownloadedFile(downloadsProvider, _currentTone.id);
+      
       if (downloadInfo == null) {
         _showSnackBar(
           context,
-          'Error: No se encontró el archivo descargado para el ID: ${_currentTone.id}',
+          'Error: No se encontró el archivo descargado para el ID: ${_currentTone.id}. Intenta descargar nuevamente.',
         );
         return;
       }
@@ -576,8 +582,18 @@ class _TonePlayerPageState extends State<TonePlayerPage>
         return;
       }
 
+      // Verify the file actually exists on disk
+      final file = File(downloadInfo.localPath);
+      if (!await file.exists()) {
+        _showSnackBar(
+          context,
+          'Error: El archivo descargado no existe en el dispositivo. Descarga nuevamente.',
+        );
+        return;
+      }
+
       final filePath = downloadInfo.localPath;
-      print('DEBUG: Using direct file path: $filePath');
+      print('DEBUG: Using verified file path: $filePath');
 
       // Configure the ringtone (permission already verified)
       _showSnackBar(context, 'Configurando $actionName...');
@@ -598,6 +614,78 @@ class _TonePlayerPageState extends State<TonePlayerPage>
         'Error al configurar $actionName: ${e.toString()}',
       );
     }
+  }
+
+  // Professional method to find downloaded files using multiple strategies
+  Future<DownloadInfo?> _findDownloadedFile(DownloadsProvider downloadsProvider, String toneId) async {
+    // Strategy 1: Direct fileName contains search (current method)
+    for (final download in downloadsProvider.downloads.values) {
+      if (download.fileName.contains(toneId) && download.status == DownloadStatus.completed) {
+        print('DEBUG: Found using Strategy 1 (fileName.contains): ${download.fileName}');
+        return download;
+      }
+    }
+
+    // Strategy 2: Extract toneId from fileName and compare
+    for (final download in downloadsProvider.downloads.values) {
+      if (download.status == DownloadStatus.completed) {
+        final extractedId = _extractToneIdFromFileName(download.fileName);
+        if (extractedId == toneId) {
+          print('DEBUG: Found using Strategy 2 (extracted ID match): ${download.fileName}');
+          return download;
+        }
+      }
+    }
+
+    // Strategy 3: Check if toneId appears at the beginning of fileName
+    for (final download in downloadsProvider.downloads.values) {
+      if (download.status == DownloadStatus.completed && download.fileName.startsWith(toneId + '_')) {
+        print('DEBUG: Found using Strategy 3 (startsWith): ${download.fileName}');
+        return download;
+      }
+    }
+
+    // Strategy 4: Reverse search - check if any part of toneId matches
+    for (final download in downloadsProvider.downloads.values) {
+      if (download.status == DownloadStatus.completed) {
+        final fileName = download.fileName.toLowerCase();
+        final lowerToneId = toneId.toLowerCase();
+        
+        // Split toneId by common separators and check each part
+        final toneIdParts = lowerToneId.split(RegExp(r'[-_]+'));
+        bool foundMatch = true;
+        for (final part in toneIdParts) {
+          if (part.isNotEmpty && !fileName.contains(part)) {
+            foundMatch = false;
+            break;
+          }
+        }
+        
+        if (foundMatch && toneIdParts.isNotEmpty) {
+          print('DEBUG: Found using Strategy 4 (partial match): ${download.fileName}');
+          return download;
+        }
+      }
+    }
+
+    print('DEBUG: No download found for toneId: $toneId');
+    return null;
+  }
+
+  // Helper method to extract toneId from fileName (similar to the one in downloads_provider)
+  String _extractToneIdFromFileName(String fileName) {
+    // Remove extension first
+    final nameWithoutExtension = fileName.contains('.') 
+        ? fileName.substring(0, fileName.lastIndexOf('.'))
+        : fileName;
+    
+    // Find the first underscore that separates toneId from cleanTitle
+    final underscoreIndex = nameWithoutExtension.indexOf('_');
+    if (underscoreIndex != -1) {
+      return nameWithoutExtension.substring(0, underscoreIndex);
+    }
+    
+    return nameWithoutExtension;
   }
 
   // Professional success message for successful ringtone configuration
