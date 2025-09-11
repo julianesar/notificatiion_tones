@@ -239,13 +239,13 @@ class _TonePlayerPageState extends State<TonePlayerPage>
             CircularProgressIndicator(),
             SizedBox(height: 20),
             Text(
-              'Esperando que actives el permiso "Modificar configuración del sistema" en la configuración de Android.',
+              'Activa "Modificar configuración del sistema" en la configuración de tu dispositivo.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 16),
             ),
             SizedBox(height: 16),
             Text(
-              'Vuelve a la app cuando hayas activado el permiso.',
+              'Regresa cuando esté listo.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
@@ -318,7 +318,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'No se detectó que el permiso "Modificar configuración del sistema" haya sido activado.',
+                'El permiso "Modificar configuración del sistema" no está activado.',
                 style: TextStyle(fontSize: 16),
               ),
               SizedBox(height: 16),
@@ -344,7 +344,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                     SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Puedes intentar configurar el tono nuevamente después de activar el permiso.',
+                        'Intenta nuevamente después de activar el permiso.',
                         style: TextStyle(color: Colors.blue[700], fontSize: 14),
                       ),
                     ),

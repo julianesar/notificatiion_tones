@@ -105,12 +105,7 @@ class PermissionsServiceImpl implements PermissionsService {
   Future<String> getSystemSettingsPermissionMessage() async {
     if (!Platform.isAndroid) return '';
     
-    return 'Para configurar tonos de llamada, notificaciones y alarmas, necesitas permitir que la app modifique la configuración del sistema.\n\n'
-           'Esta función requiere el permiso "Modificar configuración del sistema" que te permitirá:\n\n'
-           '• Establecer tonos de llamada personalizados\n'
-           '• Configurar sonidos de notificación\n'
-           '• Definir alarmas personalizadas\n'
-           '• Asignar tonos a contactos específicos\n\n'
-           'Al tocar "Permitir", serás llevado a la configuración donde debes activar este permiso.';
+    return 'Necesitas activar "Modificar configuración del sistema" para personalizar tonos de llamada, notificaciones y alarmas.\n\n'
+           'Toca "Permitir" para ir a configuración y activar este permiso.';
   }
 }
