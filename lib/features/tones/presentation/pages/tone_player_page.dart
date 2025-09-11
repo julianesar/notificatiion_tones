@@ -808,7 +808,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
         backgroundColor: Colors.transparent,
         foregroundColor: colorScheme.onSurface,
         title: Text(
-          'Reproductor',
+          _currentTone.title,
           style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.w600,
           ),
@@ -876,36 +876,6 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                 ),
               ),
 
-              const SizedBox(height: 40),
-
-              // Song Info
-              Expanded(
-                flex: 1,
-                child: Column(
-                  children: [
-                    Text(
-                      _currentTone.title,
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
-                      ),
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      widget.categoryTitle,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-
               const SizedBox(height: 20),
 
               // Progress Bar
@@ -966,7 +936,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                 },
               ),
 
-              const SizedBox(height: 30),
+              const SizedBox(height: 20),
 
               // Control Buttons
               Row(
@@ -1059,7 +1029,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                 ],
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
               // Additional Action Buttons
               Row(
@@ -1121,7 +1091,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                 ],
               ),
 
-              const SizedBox(height: 40),
+              const SizedBox(height: 24),
             ],
           ),
         ),

@@ -58,8 +58,8 @@ class _MainScreenState extends State<MainScreen> {
             label: 'Favorites',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.download),
-            label: 'Downloads',
+            icon: Icon(Icons.history),
+            label: 'Recent',
           ),
         ],
       ),
