@@ -3,11 +3,16 @@ package com.example.my_new_app
 import android.app.Activity
 import android.content.Intent
 import android.content.ContentValues
+import android.content.pm.PackageManager
+import android.database.Cursor
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
+import android.provider.ContactsContract
 import android.provider.MediaStore
 import android.provider.Settings
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -16,6 +21,9 @@ import java.io.File
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "com.example.notifications_sounds/ringtone_config"
     private val SYSTEM_ALERT_WINDOW_REQUEST = 100
+    private val CONTACTS_PERMISSION_REQUEST = 101
+    
+    private var contactsPermissionResult: MethodChannel.Result? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -32,6 +40,25 @@ class MainActivity : FlutterActivity() {
                 "openSystemSettings" -> {
                     openSystemSettings()
                     result.success(null)
+                }
+                "hasContactsPermission" -> {
+                    result.success(hasContactsPermission())
+                }
+                "requestContactsPermission" -> {
+                    if (hasContactsPermission()) {
+                        result.success(true)
+                    } else {
+                        contactsPermissionResult = result
+                        requestContactsPermission()
+                    }
+                }
+                "getContacts" -> {
+                    if (hasContactsPermission()) {
+                        val contacts = getContacts()
+                        result.success(contacts)
+                    } else {
+                        result.error("PERMISSION_DENIED", "Contacts permission not granted", null)
+                    }
                 }
                 "setRingtone" -> {
                     val filePath = call.argument<String>("filePath")
@@ -78,6 +105,63 @@ class MainActivity : FlutterActivity() {
             }
             startActivity(intent)
         }
+    }
+
+    private fun hasContactsPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED &&
+               ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_CONTACTS) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun requestContactsPermission() {
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(
+                android.Manifest.permission.READ_CONTACTS,
+                android.Manifest.permission.WRITE_CONTACTS
+            ),
+            CONTACTS_PERMISSION_REQUEST
+        )
+    }
+
+    private fun getContacts(): List<Map<String, String>> {
+        val contacts = mutableListOf<Map<String, String>>()
+        val cursor: Cursor? = contentResolver.query(
+            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+            arrayOf(
+                ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
+                ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                ContactsContract.CommonDataKinds.Phone.NUMBER
+            ),
+            null,
+            null,
+            ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " ASC"
+        )
+
+        cursor?.use { c ->
+            val idColumn = c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID)
+            val nameColumn = c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
+            val phoneColumn = c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+
+            while (c.moveToNext()) {
+                val id = c.getString(idColumn)
+                val name = c.getString(nameColumn)
+                val phone = c.getString(phoneColumn)
+
+                if (id != null && name != null) {
+                    val contact = mapOf(
+                        "id" to id,
+                        "name" to name,
+                        "phone" to (phone ?: "")
+                    )
+                    // Avoid duplicates based on contact ID
+                    if (!contacts.any { it["id"] == id }) {
+                        contacts.add(contact)
+                    }
+                }
+            }
+        }
+
+        return contacts
     }
 
     private fun setRingtone(filePath: String, ringtoneType: String, contactId: String?): Boolean {
@@ -162,9 +246,41 @@ class MainActivity : FlutterActivity() {
     }
 
     private fun setContactRingtone(uri: Uri, contactId: String?): Boolean {
-        // Contact-specific ringtones require additional implementation
-        // This would typically involve updating the contact's custom ringtone
-        // For now, we'll just set it as the default ringtone
-        return setCallRingtone(uri)
+        return try {
+            if (contactId == null) {
+                // If no contact ID provided, set as default ringtone
+                return setCallRingtone(uri)
+            }
+
+            // Set custom ringtone for specific contact
+            val values = ContentValues()
+            values.put(ContactsContract.Contacts.CUSTOM_RINGTONE, uri.toString())
+
+            val rowsUpdated = contentResolver.update(
+                ContactsContract.Contacts.CONTENT_URI,
+                values,
+                "${ContactsContract.Contacts._ID} = ?",
+                arrayOf(contactId)
+            )
+
+            rowsUpdated > 0
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        
+        when (requestCode) {
+            CONTACTS_PERMISSION_REQUEST -> {
+                val contactsPermissionGranted = grantResults.isNotEmpty() && 
+                    grantResults.all { it == PackageManager.PERMISSION_GRANTED }
+                
+                contactsPermissionResult?.success(contactsPermissionGranted)
+                contactsPermissionResult = null
+            }
+        }
     }
 }

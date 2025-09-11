@@ -16,7 +16,9 @@ import '../../../../core/di/service_locator.dart';
 import '../../../downloads/presentation/providers/downloads_provider.dart';
 import '../../../downloads/domain/entities/download_info.dart';
 import '../../../downloads/domain/repositories/download_repository.dart';
-import '../../../../core/navigation/navigation_service.dart';
+import '../../../contacts/presentation/widgets/contact_picker_dialog.dart';
+import '../../../contacts/presentation/providers/contacts_provider.dart';
+import '../../../contacts/domain/entities/contact.dart';
 
 class TonePlayerPage extends StatefulWidget {
   final Tone tone;
@@ -518,15 +520,25 @@ class _TonePlayerPageState extends State<TonePlayerPage>
     final hasPermission = await _checkAndRequestWriteSettingsPermission();
     if (!hasPermission) return; // User denied permission or couldn't grant it
 
-    // If we have permission, proceed to configure the downloaded ringtone
+    // Show contact picker dialog
+    final selectedContact = await ContactPickerDialog.show(
+      context: context,
+      title: 'Seleccionar Contacto',
+      subtitle: 'Elige el contacto para asignar el tono "${_currentTone.title}"',
+    );
+
+    if (selectedContact == null) return; // User cancelled selection
+
+    // Configure the downloaded ringtone for the selected contact
     await _configureDownloadedRingtone(
-      actionName: 'tono de contacto',
+      actionName: 'tono de contacto para ${selectedContact.name}',
       configurationFunction: (context, filePath) async {
         final service = sl<RingtoneManagementService>();
         return await service.setAsContactRingtone(
           context,
           filePath,
           _currentTone.title,
+          contactId: selectedContact.id,
         );
       },
     );
@@ -649,7 +661,9 @@ class _TonePlayerPageState extends State<TonePlayerPage>
             children: [
               Icon(Icons.check_circle, color: Colors.green, size: 28),
               SizedBox(width: 12),
-              Text('¡Configuración Exitosa!'),
+              Expanded(
+                child: Text('¡Configuración Exitosa!'),
+              ),
             ],
           ),
           content: Column(

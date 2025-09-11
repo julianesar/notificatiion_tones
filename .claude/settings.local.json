@@ -21,7 +21,8 @@
       "Bash(dart analyze:*)",
       "Bash(dart:*)",
       "Bash(r)",
-      "Bash(npx:*)"
+      "Bash(npx:*)",
+      "Bash(flutter test:*)"
     ],
     "deny": [],
     "ask": []

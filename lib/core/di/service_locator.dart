@@ -15,6 +15,12 @@ import '../../features/downloads/domain/usecases/download_tone.dart';
 import '../../features/downloads/domain/usecases/get_downloaded_files.dart';
 import '../../features/downloads/domain/usecases/is_file_downloaded.dart';
 import '../../features/downloads/presentation/providers/downloads_provider.dart';
+import '../../features/contacts/data/datasources/contacts_native_ds.dart';
+import '../../features/contacts/data/repositories/contacts_repository_impl.dart';
+import '../../features/contacts/domain/repositories/contacts_repository.dart';
+import '../../features/contacts/domain/usecases/get_contacts.dart';
+import '../../features/contacts/domain/usecases/request_contacts_permission.dart';
+import '../../features/contacts/presentation/providers/contacts_provider.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -84,6 +90,30 @@ Future<void> init() async {
       getDownloadedFiles: sl(),
       isFileDownloaded: sl(),
       downloadRepository: sl(),
+    ),
+  );
+
+  // Contacts - Data sources
+  sl.registerLazySingleton<ContactsNativeDataSource>(
+    () => ContactsNativeDataSourceImpl(),
+  );
+
+  // Contacts - Repository
+  sl.registerLazySingleton<ContactsRepository>(
+    () => ContactsRepositoryImpl(
+      nativeDataSource: sl(),
+    ),
+  );
+
+  // Contacts - Use cases
+  sl.registerLazySingleton(() => GetContacts(sl()));
+  sl.registerLazySingleton(() => RequestContactsPermission(sl()));
+
+  // Contacts - Provider
+  sl.registerFactory(
+    () => ContactsProvider(
+      getContacts: sl(),
+      requestContactsPermission: sl(),
     ),
   );
 }

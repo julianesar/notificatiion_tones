@@ -23,8 +23,8 @@ import 'core/services/audio_service.dart';
 import 'core/services/permissions_service.dart';
 import 'core/di/service_locator.dart' as di;
 import 'features/downloads/presentation/providers/downloads_provider.dart';
+import 'features/contacts/presentation/providers/contacts_provider.dart';
 import 'core/navigation/navigation_service.dart';
-import 'screens/main_screen.dart';
 
 void main() async {
   // Asegurarse de que los widgets estén inicializados
@@ -82,6 +82,9 @@ void main() async {
         ),
         ChangeNotifierProvider<DownloadsProvider>(
           create: (_) => di.sl<DownloadsProvider>(),
+        ),
+        ChangeNotifierProvider<ContactsProvider>(
+          create: (_) => di.sl<ContactsProvider>(),
         ),
       ],
       child: const MyApp(),

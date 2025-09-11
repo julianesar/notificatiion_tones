@@ -37,7 +37,7 @@ abstract class RingtoneManagementService {
   Future<RingtoneConfigurationResult> setAsCallRingtone(BuildContext context, String filePath, String toneName);
   Future<RingtoneConfigurationResult> setAsNotificationRingtone(BuildContext context, String filePath, String toneName);
   Future<RingtoneConfigurationResult> setAsAlarmRingtone(BuildContext context, String filePath, String toneName);
-  Future<RingtoneConfigurationResult> setAsContactRingtone(BuildContext context, String filePath, String toneName);
+  Future<RingtoneConfigurationResult> setAsContactRingtone(BuildContext context, String filePath, String toneName, {String? contactId});
 }
 
 class RingtoneManagementServiceImpl implements RingtoneManagementService {
@@ -144,8 +144,9 @@ class RingtoneManagementServiceImpl implements RingtoneManagementService {
     String filePath,
     String toneName,
     RingtoneType ringtoneType,
-    String actionName,
-  ) async {
+    String actionName, {
+    String? contactId,
+  }) async {
     try {
       // First, handle system settings permission
       final permissionResult = await _handleSystemSettingsPermission(context, actionName);
@@ -165,6 +166,7 @@ class RingtoneManagementServiceImpl implements RingtoneManagementService {
       final success = await _ringtoneConfigurationService.configureRingtone(
         filePath,
         ringtoneType,
+        contactId: contactId,
       );
 
       if (success) {
@@ -230,16 +232,16 @@ class RingtoneManagementServiceImpl implements RingtoneManagementService {
   Future<RingtoneConfigurationResult> setAsContactRingtone(
     BuildContext context,
     String filePath,
-    String toneName,
-  ) async {
-    // For contact ringtone, we might need to handle contact selection
-    // This is a simplified implementation
+    String toneName, {
+    String? contactId,
+  }) async {
     return await _configureRingtone(
       context,
       filePath,
       toneName,
       RingtoneType.contact,
       'tono de contacto',
+      contactId: contactId,
     );
   }
 }
