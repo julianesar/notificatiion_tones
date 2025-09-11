@@ -17,8 +17,8 @@ import '../../../downloads/presentation/providers/downloads_provider.dart';
 import '../../../downloads/domain/entities/download_info.dart';
 import '../../../downloads/domain/repositories/download_repository.dart';
 import '../../../contacts/presentation/widgets/contact_picker_dialog.dart';
-import '../../../contacts/presentation/providers/contacts_provider.dart';
 import '../../../contacts/domain/entities/contact.dart';
+import '../../../favorites/presentation/providers/favorites_provider.dart';
 
 class TonePlayerPage extends StatefulWidget {
   final Tone tone;
@@ -56,6 +56,16 @@ class _TonePlayerPageState extends State<TonePlayerPage>
       duration: const Duration(seconds: 10),
       vsync: this,
     );
+    _initializeFavoriteStatus();
+  }
+
+  void _initializeFavoriteStatus() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final favoritesProvider = context.read<FavoritesProvider>();
+        favoritesProvider.checkFavoriteStatus(_currentTone.id);
+      }
+    });
   }
 
   @override
@@ -91,6 +101,9 @@ class _TonePlayerPageState extends State<TonePlayerPage>
         _isLocalLoading = true;
       });
 
+      // Update favorite status for the new tone
+      _initializeFavoriteStatus();
+
       final audioService = context.read<AudioService>();
       try {
         await audioService.playTone(_currentTone.id, _currentTone.url);
@@ -113,6 +126,9 @@ class _TonePlayerPageState extends State<TonePlayerPage>
         _currentTone = widget.tones[_currentIndex];
         _isLocalLoading = true;
       });
+
+      // Update favorite status for the new tone
+      _initializeFavoriteStatus();
 
       final audioService = context.read<AudioService>();
       try {
@@ -145,6 +161,37 @@ class _TonePlayerPageState extends State<TonePlayerPage>
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
+    }
+  }
+
+  Future<void> _toggleFavorite() async {
+    final favoritesProvider = context.read<FavoritesProvider>();
+
+    try {
+      final isNowFavorite = await favoritesProvider.toggleFavoriteStatus(
+        _currentTone.id,
+        _currentTone.title,
+        _currentTone.url,
+        requiresAttribution: _currentTone.requiresAttribution,
+        attributionText: _currentTone.attributionText,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isNowFavorite ? 'Agregado a favoritos' : 'Eliminado de favoritos',
+            ),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        _showErrorSnackBar('Error al cambiar favorito: $e');
+      }
     }
   }
 
@@ -1013,15 +1060,19 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   // Favorite Button
-                  IconButton(
-                    onPressed: () {
-                      // TODO: Implement favorite functionality
+                  Consumer<FavoritesProvider>(
+                    builder: (context, favoritesProvider, child) {
+                      final isFavorite = favoritesProvider.isFavoriteSync(_currentTone.id);
+                      return IconButton(
+                        onPressed: _toggleFavorite,
+                        icon: Icon(
+                          isFavorite ? Icons.favorite : Icons.favorite_border,
+                          size: 28,
+                          color: isFavorite ? Colors.red : colorScheme.onSurfaceVariant,
+                        ),
+                        tooltip: isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos',
+                      );
                     },
-                    icon: Icon(
-                      Icons.favorite_border,
-                      size: 28,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
                   ),
                   // Configure Sound Button
                   IconButton(
