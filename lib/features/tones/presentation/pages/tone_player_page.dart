@@ -184,7 +184,9 @@ class _TonePlayerPageState extends State<TonePlayerPage>
             ),
             behavior: SnackBarBehavior.floating,
             duration: const Duration(seconds: 2),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
         );
       }
@@ -571,7 +573,8 @@ class _TonePlayerPageState extends State<TonePlayerPage>
     final selectedContact = await ContactPickerDialog.show(
       context: context,
       title: 'Seleccionar Contacto',
-      subtitle: 'Elige el contacto para asignar el tono "${_currentTone.title}"',
+      subtitle:
+          'Elige el contacto para asignar el tono "${_currentTone.title}"',
     );
 
     if (selectedContact == null) return; // User cancelled selection
@@ -708,9 +711,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
             children: [
               Icon(Icons.check_circle, color: Colors.green, size: 28),
               SizedBox(width: 12),
-              Expanded(
-                child: Text('¡Configuración Exitosa!'),
-              ),
+              Expanded(child: Text('¡Configuración Exitosa!')),
             ],
           ),
           content: Column(
@@ -818,10 +819,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
             ? [
                 IconButton(
                   onPressed: () => _showAttributionDialog(context),
-                  icon: Icon(
-                    Icons.info_outline,
-                    color: colorScheme.onSurface,
-                  ),
+                  icon: Icon(Icons.info_outline, color: colorScheme.onSurface),
                   tooltip: 'Información de atribución',
                 ),
               ]
@@ -1038,15 +1036,21 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                   // Favorite Button
                   Consumer<FavoritesProvider>(
                     builder: (context, favoritesProvider, child) {
-                      final isFavorite = favoritesProvider.isFavoriteSync(_currentTone.id);
+                      final isFavorite = favoritesProvider.isFavoriteSync(
+                        _currentTone.id,
+                      );
                       return IconButton(
                         onPressed: _toggleFavorite,
                         icon: Icon(
                           isFavorite ? Icons.favorite : Icons.favorite_border,
                           size: 28,
-                          color: isFavorite ? Colors.red : colorScheme.onSurfaceVariant,
+                          color: isFavorite
+                              ? Colors.red
+                              : colorScheme.onSurfaceVariant,
                         ),
-                        tooltip: isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos',
+                        tooltip: isFavorite
+                            ? 'Quitar de favoritos'
+                            : 'Agregar a favoritos',
                       );
                     },
                   ),
@@ -1098,7 +1102,6 @@ class _TonePlayerPageState extends State<TonePlayerPage>
       ),
     );
   }
-
 
   void _showSnackBar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(

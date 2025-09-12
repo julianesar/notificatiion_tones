@@ -57,7 +57,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
                   ),
                   const SizedBox(height: 16),
                   const Text(
-                    'Error al cargar las descargas',
+                    'Error al cargar los recientes',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
                   ),
                   const SizedBox(height: 8),
@@ -95,13 +95,13 @@ class _DownloadsPageState extends State<DownloadsPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    Icons.download_outlined, 
+                    Icons.history, 
                     size: 64, 
                     color: Colors.grey.shade400,
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'No hay descargas',
+                    'No hay tonos recientes',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
@@ -110,7 +110,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Los tonos que descargues aparecerán aquí',
+                    'Los tonos que uses aparecerán aquí',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey.shade500,
@@ -177,7 +177,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
                           toneId: completedDownloads[index].localPath,
                           title: _getDisplayTitle(completedDownloads[index]),
                           url: completedDownloads[index].localPath,
-                          subtitle: 'Descargado ${_formatDate(completedDownloads[index].completedAt!)}',
+                          subtitle: 'Reproducido ${_formatDate(completedDownloads[index].completedAt!)}',
                           requiresAttribution: completedDownloads[index].requiresAttribution,
                           attributionText: completedDownloads[index].attributionText,
                           showFavoriteButton: false,
@@ -218,7 +218,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
     // Show the share options modal
     context.showShareOptionsModal(
       tones: tones,
-      collectionName: 'Mis Descargas',
+      collectionName: 'Mis Recientes',
       showShareApp: true,
       showShareCollection: true,
     );
@@ -241,7 +241,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Tus tonos descargados se guardan en:',
+              'Tus tonos recientes se guardan en:',
               style: TextStyle(fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 12),
@@ -284,7 +284,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Eliminar Descarga'),
+        title: const Text('Eliminar del Reciente'),
         content: Text(
           '¿Estás seguro de que quieres eliminar "${_getDisplayTitle(download)}"?\n\n'
           'Esta acción no se puede deshacer.',
@@ -312,8 +312,8 @@ class _DownloadsPageState extends State<DownloadsPage> {
                   SnackBar(
                     content: Text(
                       success 
-                        ? 'Descarga eliminada exitosamente' 
-                        : 'Error al eliminar la descarga'
+                        ? 'Tono eliminado de recientes exitosamente' 
+                        : 'Error al eliminar el tono de recientes'
                     ),
                     backgroundColor: success 
                       ? Theme.of(context).colorScheme.primaryContainer
@@ -377,7 +377,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
       MaterialPageRoute(
         builder: (context) => TonePlayerPage(
           tone: localTone,
-          categoryTitle: 'Mis Descargas',
+          categoryTitle: 'Mis Recientes',
           tones: [localTone], // Lista con solo este tono
           isFromDownloads: true,
         ),
