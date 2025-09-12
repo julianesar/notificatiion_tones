@@ -827,54 +827,101 @@ class _TonePlayerPageState extends State<TonePlayerPage>
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
           child: Column(
             children: [
-              const SizedBox(height: 20),
+              // Top spacing
+              Expanded(
+                flex: 1,
+                child: Container(),
+              ),
 
               // Album Art / Visualization
-              Expanded(
-                flex: 3,
-                child: Center(
-                  child: Container(
-                    width: 280,
-                    height: 280,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          colorScheme.primary.withValues(alpha: 0.8),
-                          colorScheme.secondary.withValues(alpha: 0.6),
-                        ],
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: colorScheme.primary.withValues(alpha: 0.3),
-                          blurRadius: 20,
-                          spreadRadius: 5,
-                        ),
-                      ],
+              Container(
+                width: 260,
+                height: 260,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      colorScheme.primary.withValues(alpha: 0.1),
+                      colorScheme.secondary.withValues(alpha: 0.05),
+                    ],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 15,
+                      spreadRadius: 0,
+                      offset: Offset(0, 8),
                     ),
-                    child: AnimatedBuilder(
-                      animation: _rotationController,
-                      builder: (context, child) {
-                        return Transform.rotate(
-                          angle: _rotationController.value * 2 * 3.14159,
+                  ],
+                ),
+                child: Center(
+                  child: AnimatedBuilder(
+                    animation: _rotationController,
+                    builder: (context, child) {
+                      return Transform.rotate(
+                        angle: _rotationController.value * 2 * 3.14159,
+                        child: Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(50),
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                colorScheme.primary.withValues(alpha: 0.3),
+                                colorScheme.secondary.withValues(alpha: 0.2),
+                              ],
+                            ),
+                          ),
                           child: Icon(
                             Icons.audiotrack,
-                            size: 120,
-                            color: colorScheme.onPrimary,
+                            size: 50,
+                            color: colorScheme.primary,
                           ),
-                        );
-                      },
-                    ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
+
+              // Track Title and Category
+              Column(
+                children: [
+                  Text(
+                    _currentTone.title,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    widget.categoryTitle,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+
+              // Middle spacing
+              Expanded(
+                flex: 1,
+                child: Container(),
+              ),
 
               // Progress Bar
               Consumer<AudioService>(
@@ -887,19 +934,19 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                     children: [
                       SliderTheme(
                         data: SliderTheme.of(context).copyWith(
-                          trackHeight: 4,
+                          trackHeight: 3,
                           thumbShape: const RoundSliderThumbShape(
-                            enabledThumbRadius: 8,
+                            enabledThumbRadius: 6,
                           ),
                           overlayShape: const RoundSliderOverlayShape(
-                            overlayRadius: 16,
+                            overlayRadius: 12,
                           ),
                           activeTrackColor: colorScheme.primary,
                           inactiveTrackColor:
-                              colorScheme.surfaceContainerHighest,
+                              colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                           thumbColor: colorScheme.primary,
                           overlayColor: colorScheme.primary.withValues(
-                            alpha: 0.2,
+                            alpha: 0.1,
                           ),
                         ),
                         child: Slider(
@@ -934,22 +981,25 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                 },
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
               // Control Buttons
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
+                  // Previous Button
                   IconButton(
                     onPressed: _hasPrevious() ? _playPreviousTone : null,
                     icon: Icon(
                       Icons.skip_previous,
                       size: 32,
                       color: _hasPrevious()
-                          ? colorScheme.onSurfaceVariant
+                          ? colorScheme.onSurfaceVariant.withValues(alpha: 0.7)
                           : colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
                     ),
                   ),
+                  
+                  // Play/Pause Button
                   Consumer<AudioService>(
                     builder: (context, audioService, child) {
                       final isCurrentTonePlaying = audioService.isTonePlaying(
@@ -981,14 +1031,17 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                       });
 
                       return Container(
+                        width: 64,
+                        height: 64,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: colorScheme.primary,
                           boxShadow: [
                             BoxShadow(
-                              color: colorScheme.primary.withValues(alpha: 0.3),
-                              blurRadius: 10,
-                              spreadRadius: 2,
+                              color: Colors.black.withValues(alpha: 0.15),
+                              blurRadius: 8,
+                              spreadRadius: 0,
+                              offset: Offset(0, 4),
                             ),
                           ],
                         ),
@@ -996,42 +1049,44 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                           onPressed: isLoading ? null : _togglePlayPause,
                           icon: isLoading
                               ? SizedBox(
-                                  width: 40,
-                                  height: 40,
+                                  width: 24,
+                                  height: 24,
                                   child: CircularProgressIndicator(
-                                    strokeWidth: 3,
+                                    strokeWidth: 2.5,
                                     color: colorScheme.onPrimary,
                                   ),
                                 )
                               : Icon(
                                   isCurrentTonePlaying
-                                      ? Icons.stop
+                                      ? Icons.pause
                                       : Icons.play_arrow,
-                                  size: 40,
+                                  size: 28,
                                   color: colorScheme.onPrimary,
                                 ),
                         ),
                       );
                     },
                   ),
+                  
+                  // Next Button
                   IconButton(
                     onPressed: _hasNext() ? _playNextTone : null,
                     icon: Icon(
                       Icons.skip_next,
                       size: 32,
                       color: _hasNext()
-                          ? colorScheme.onSurfaceVariant
+                          ? colorScheme.onSurfaceVariant.withValues(alpha: 0.7)
                           : colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
                     ),
                   ),
                 ],
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
 
-              // Additional Action Buttons
+              // Action Buttons Row
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   // Favorite Button
                   Consumer<FavoritesProvider>(
@@ -1042,29 +1097,18 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                       return IconButton(
                         onPressed: _toggleFavorite,
                         icon: Icon(
-                          isFavorite ? Icons.favorite : Icons.favorite_border,
+                          isFavorite ? Icons.favorite_outline : Icons.favorite_border,
                           size: 28,
                           color: isFavorite
                               ? Colors.red
-                              : colorScheme.onSurfaceVariant,
+                              : colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                         ),
-                        tooltip: isFavorite
-                            ? 'Quitar de favoritos'
-                            : 'Agregar a favoritos',
                       );
                     },
                   ),
-                  // Configure Sound Button
-                  IconButton(
-                    onPressed: () async {
-                      await _downloadTone();
-                    },
-                    icon: Icon(
-                      Icons.settings,
-                      size: 28,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
+                  
+                  const SizedBox(width: 16),
+                  
                   // Share Button
                   IconButton(
                     onPressed: () async {
@@ -1087,15 +1131,42 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                       }
                     },
                     icon: Icon(
-                      Icons.share,
+                      Icons.share_outlined,
                       size: 28,
-                      color: colorScheme.onSurfaceVariant,
+                      color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                     ),
                   ),
                 ],
               ),
 
               const SizedBox(height: 24),
+
+              // Set as Ringtone Button
+              Container(
+                width: double.infinity,
+                height: 48,
+                margin: const EdgeInsets.only(bottom: 16),
+                child: ElevatedButton(
+                  onPressed: () async {
+                    await _downloadTone();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: colorScheme.onPrimary,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                  ),
+                  child: Text(
+                    'Set as Ringtone',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
