@@ -34,9 +34,25 @@ class ToneCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return Container(
       key: ValueKey(toneId),
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.grey.withOpacity(0.05),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 8),
+            spreadRadius: -4,
+          ),
+        ],
+      ),
       child: Consumer<AudioService>(
         builder: (context, audioService, child) {
           final isPlaying = audioService.isTonePlaying(toneId);
@@ -44,61 +60,89 @@ class ToneCardWidget extends StatelessWidget {
               audioService.isLoading &&
               audioService.currentlyPlayingId == toneId;
 
-          return ListTile(
-            leading: GestureDetector(
-              onTap: () => _toggleAudioPlay(context, audioService),
-              child: Container(
-                key: ValueKey('${toneId}_button'),
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 200),
-                  child: isAudioLoading
-                      ? SizedBox(
-                          key: const ValueKey('loading'),
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Theme.of(context).primaryColor,
+          return InkWell(
+            onTap: () => _openFullScreenPlayer(context),
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => _toggleAudioPlay(context, audioService),
+                    child: Container(
+                      key: ValueKey('${toneId}_button'),
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 200),
+                        child: isAudioLoading
+                            ? SizedBox(
+                                key: const ValueKey('loading'),
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Theme.of(context).primaryColor,
+                                ),
+                              )
+                            : Icon(
+                                isPlaying ? Icons.stop : Icons.play_arrow,
+                                key: ValueKey(isPlaying ? 'stop' : 'play'),
+                                color: Theme.of(context).primaryColor,
+                              ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                            color: Colors.black87,
                           ),
-                        )
-                      : Icon(
-                          isPlaying ? Icons.stop : Icons.play_arrow,
-                          key: ValueKey(isPlaying ? 'stop' : 'play'),
-                          color: Theme.of(context).primaryColor,
                         ),
-                ),
+                        const SizedBox(height: 2),
+                        Text(
+                          subtitle,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (showDeleteButtonInTrailing && onDelete != null)
+                    IconButton(
+                      onPressed: () {
+                        HapticFeedback.mediumImpact();
+                        onDelete!();
+                      },
+                      icon: const Icon(Icons.delete_outline),
+                      tooltip: 'Eliminar',
+                      color: Theme.of(context).colorScheme.error,
+                    )
+                  else
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      child: Icon(
+                        Icons.chevron_right,
+                        color: Colors.grey[400],
+                        size: 20,
+                      ),
+                    ),
+                ],
               ),
             ),
-            title: Text(
-              title,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle: Text(
-              subtitle,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            trailing: showDeleteButtonInTrailing && onDelete != null
-                ? IconButton(
-                    onPressed: () {
-                      HapticFeedback.mediumImpact();
-                      onDelete!();
-                    },
-                    icon: const Icon(Icons.delete_outline),
-                    tooltip: 'Eliminar',
-                    color: Theme.of(context).colorScheme.error,
-                  )
-                : IconButton(
-                    onPressed: () => _openFullScreenPlayer(context),
-                    icon: const Icon(Icons.arrow_forward_ios),
-                    tooltip: 'Abrir reproductor',
-                  ),
-            onTap: onTap,
           );
         },
       ),

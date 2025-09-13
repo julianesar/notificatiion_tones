@@ -15,7 +15,6 @@ class FavoritesScreen extends StatefulWidget {
 }
 
 class _FavoritesScreenState extends State<FavoritesScreen> {
-
   @override
   void initState() {
     super.initState();
@@ -50,7 +49,10 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   IconButton(
                     icon: const Icon(Icons.share),
                     tooltip: 'Compartir favoritos',
-                    onPressed: () => _showShareFavorites(context, favoritesProvider.favorites),
+                    onPressed: () => _showShareFavorites(
+                      context,
+                      favoritesProvider.favorites,
+                    ),
                   ),
                   IconButton(
                     icon: const Icon(Icons.delete_sweep),
@@ -108,11 +110,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.favorite_border,
-                    size: 64,
-                    color: Colors.grey,
-                  ),
+                  Icon(Icons.favorite_border, size: 64, color: Colors.grey),
                   SizedBox(height: 16),
                   Text(
                     'Sin favoritos aún',
@@ -126,10 +124,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   Text(
                     'Los tonos que marques como favoritos aparecerán aquí',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                 ],
               ),
@@ -139,7 +134,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           return RefreshIndicator(
             onRefresh: () => favoritesProvider.loadFavorites(),
             child: ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(vertical: 16),
               itemCount: favoritesProvider.favorites.length,
               itemBuilder: (context, index) {
                 final favorite = favoritesProvider.favorites[index];
@@ -163,7 +158,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     );
   }
 
-
   void _openPlayer(BuildContext context, Favorite favorite) {
     final tone = Tone(
       id: favorite.toneId,
@@ -174,13 +168,17 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     );
 
     final favoritesProvider = context.read<FavoritesProvider>();
-    final favoritesList = favoritesProvider.favorites.map((fav) => Tone(
-      id: fav.toneId,
-      title: fav.title,
-      url: fav.url,
-      requiresAttribution: fav.requiresAttribution,
-      attributionText: fav.attributionText,
-    )).toList();
+    final favoritesList = favoritesProvider.favorites
+        .map(
+          (fav) => Tone(
+            id: fav.toneId,
+            title: fav.title,
+            url: fav.url,
+            requiresAttribution: fav.requiresAttribution,
+            attributionText: fav.attributionText,
+          ),
+        )
+        .toList();
 
     Navigator.push(
       context,
@@ -194,18 +192,21 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     );
   }
 
-
   void _showShareFavorites(BuildContext context, List<Favorite> favorites) {
     if (favorites.isEmpty) return;
 
     // Convert favorites to Tone entities
-    final tones = favorites.map((favorite) => Tone(
-      id: favorite.toneId,
-      title: favorite.title,
-      url: favorite.url,
-      requiresAttribution: favorite.requiresAttribution,
-      attributionText: favorite.attributionText,
-    )).toList();
+    final tones = favorites
+        .map(
+          (favorite) => Tone(
+            id: favorite.toneId,
+            title: favorite.title,
+            url: favorite.url,
+            requiresAttribution: favorite.requiresAttribution,
+            attributionText: favorite.attributionText,
+          ),
+        )
+        .toList();
 
     // Show the share options modal
     context.showShareOptionsModal(
@@ -221,7 +222,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Limpiar favoritos'),
-        content: const Text('¿Estás seguro de que quieres eliminar todos los favoritos?'),
+        content: const Text(
+          '¿Estás seguro de que quieres eliminar todos los favoritos?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -231,7 +234,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             onPressed: () async {
               Navigator.of(context).pop();
               final favoritesProvider = context.read<FavoritesProvider>();
-              
+
               try {
                 await favoritesProvider.clearAllFavorites();
                 if (context.mounted) {
@@ -254,7 +257,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                         children: [
                           const Icon(Icons.error_outline, color: Colors.white),
                           const SizedBox(width: 8),
-                          Expanded(child: Text('Error al eliminar favoritos: $e')),
+                          Expanded(
+                            child: Text('Error al eliminar favoritos: $e'),
+                          ),
                         ],
                       ),
                       backgroundColor: theme.colorScheme.error,
@@ -274,7 +279,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       ),
     );
   }
-
 
   String _formatDate(DateTime date) {
     final now = DateTime.now();

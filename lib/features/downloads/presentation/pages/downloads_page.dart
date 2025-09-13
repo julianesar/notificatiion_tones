@@ -81,9 +81,11 @@ class _DownloadsPageState extends State<DownloadsPage> {
 
           final downloads = provider.downloadsList;
           final activeDownloads = downloads
-              .where((d) => 
-                  d.status == DownloadStatus.downloading || 
-                  d.status == DownloadStatus.waiting)
+              .where(
+                (d) =>
+                    d.status == DownloadStatus.downloading ||
+                    d.status == DownloadStatus.waiting,
+              )
               .toList();
           final completedDownloads = downloads
               .where((d) => d.status == DownloadStatus.completed)
@@ -94,11 +96,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.history, 
-                    size: 64, 
-                    color: Colors.grey.shade400,
-                  ),
+                  Icon(Icons.history, size: 64, color: Colors.grey.shade400),
                   const SizedBox(height: 16),
                   Text(
                     'No hay tonos recientes',
@@ -111,10 +109,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
                   const SizedBox(height: 8),
                   Text(
                     'Los tonos que uses aparecerán aquí',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade500,
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
                   ),
                 ],
               ),
@@ -132,69 +127,80 @@ class _DownloadsPageState extends State<DownloadsPage> {
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                       child: Text(
                         'Descargando (${activeDownloads.length})',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
                       ),
                     ),
                   ),
                   SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) => Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                        child: _ActiveDownloadTile(download: activeDownloads[index]),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 4,
+                        ),
+                        child: _ActiveDownloadTile(
+                          download: activeDownloads[index],
+                        ),
                       ),
                       childCount: activeDownloads.length,
                     ),
                   ),
                 ],
-                
+
                 // Completed Downloads Section
                 if (completedDownloads.isNotEmpty) ...[
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: EdgeInsets.fromLTRB(
-                        16, 
-                        activeDownloads.isNotEmpty ? 24 : 16, 
-                        16, 
-                        8
+                        16,
+                        activeDownloads.isNotEmpty ? 24 : 16,
+                        16,
+                        8,
                       ),
                       child: Text(
                         'Completadas (${completedDownloads.length})',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                            ),
                       ),
                     ),
                   ),
                   SliverList(
                     delegate: SliverChildBuilderDelegate(
-                      (context, index) => Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                        child: ToneCardWidget(
-                          toneId: completedDownloads[index].localPath,
-                          title: _getDisplayTitle(completedDownloads[index]),
-                          url: completedDownloads[index].localPath,
-                          subtitle: 'Reproducido ${_formatDate(completedDownloads[index].completedAt!)}',
-                          requiresAttribution: completedDownloads[index].requiresAttribution,
-                          attributionText: completedDownloads[index].attributionText,
-                          showFavoriteButton: false,
-                          showDeleteButtonInTrailing: true,
-                          onTap: () => _openLocalPlayer(context, completedDownloads[index]),
-                          onDelete: () => _confirmDelete(context, completedDownloads[index]),
+                      (context, index) => ToneCardWidget(
+                        toneId: completedDownloads[index].localPath,
+                        title: _getDisplayTitle(completedDownloads[index]),
+                        url: completedDownloads[index].localPath,
+                        subtitle:
+                            'Reproducido ${_formatDate(completedDownloads[index].completedAt!)}',
+                        requiresAttribution:
+                            completedDownloads[index].requiresAttribution,
+                        attributionText:
+                            completedDownloads[index].attributionText,
+                        showFavoriteButton: false,
+                        showDeleteButtonInTrailing: true,
+                        onTap: () => _openLocalPlayer(
+                          context,
+                          completedDownloads[index],
                         ),
+                        onDelete: () =>
+                            _confirmDelete(context, completedDownloads[index]),
                       ),
                       childCount: completedDownloads.length,
                     ),
                   ),
                 ],
-                
+
                 // Bottom padding
-                const SliverToBoxAdapter(
-                  child: SizedBox(height: 16),
-                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 16)),
               ],
             ),
           );
@@ -203,17 +209,24 @@ class _DownloadsPageState extends State<DownloadsPage> {
     );
   }
 
-  void _showShareDownloads(BuildContext context, List<DownloadInfo> completedDownloads) {
+  void _showShareDownloads(
+    BuildContext context,
+    List<DownloadInfo> completedDownloads,
+  ) {
     if (completedDownloads.isEmpty) return;
 
     // Convert downloads to Tone entities
-    final tones = completedDownloads.map((download) => Tone(
-      id: download.localPath,
-      title: _getDisplayTitle(download),
-      url: download.localPath,
-      requiresAttribution: download.requiresAttribution,
-      attributionText: download.attributionText,
-    )).toList();
+    final tones = completedDownloads
+        .map(
+          (download) => Tone(
+            id: download.localPath,
+            title: _getDisplayTitle(download),
+            url: download.localPath,
+            requiresAttribution: download.requiresAttribution,
+            attributionText: download.attributionText,
+          ),
+        )
+        .toList();
 
     // Show the share options modal
     context.showShareOptionsModal(
@@ -300,24 +313,24 @@ class _DownloadsPageState extends State<DownloadsPage> {
               HapticFeedback.mediumImpact();
               final provider = context.read<DownloadsProvider>();
               final success = await provider.deleteDownload(download.localPath);
-              
+
               if (mounted) {
                 if (success) {
                   HapticFeedback.lightImpact();
                 } else {
                   HapticFeedback.heavyImpact();
                 }
-                
+
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      success 
-                        ? 'Tono eliminado de recientes exitosamente' 
-                        : 'Error al eliminar el tono de recientes'
+                      success
+                          ? 'Tono eliminado de recientes exitosamente'
+                          : 'Error al eliminar el tono de recientes',
                     ),
-                    backgroundColor: success 
-                      ? Theme.of(context).colorScheme.primaryContainer
-                      : Theme.of(context).colorScheme.error,
+                    backgroundColor: success
+                        ? Theme.of(context).colorScheme.primaryContainer
+                        : Theme.of(context).colorScheme.error,
                     behavior: SnackBarBehavior.floating,
                     duration: const Duration(seconds: 2),
                   ),
@@ -341,8 +354,8 @@ class _DownloadsPageState extends State<DownloadsPage> {
       return filenameService.generateDisplayName(download.originalTitle);
     } catch (e) {
       // Fallback al nombre original o fileName si no está disponible
-      return download.originalTitle.isNotEmpty 
-          ? download.originalTitle 
+      return download.originalTitle.isNotEmpty
+          ? download.originalTitle
           : download.fileName;
     }
   }
@@ -397,8 +410,8 @@ class _ActiveDownloadTile extends StatelessWidget {
       return filenameService.generateDisplayName(download.originalTitle);
     } catch (e) {
       // Fallback al nombre original o fileName si no está disponible
-      return download.originalTitle.isNotEmpty 
-          ? download.originalTitle 
+      return download.originalTitle.isNotEmpty
+          ? download.originalTitle
           : download.fileName;
     }
   }
@@ -444,7 +457,9 @@ class _ActiveDownloadTile extends StatelessWidget {
               duration: const Duration(milliseconds: 300),
               child: LinearProgressIndicator(
                 value: download.progress,
-                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                backgroundColor: Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerHighest,
                 valueColor: AlwaysStoppedAnimation<Color>(
                   Theme.of(context).colorScheme.primary,
                 ),
@@ -465,7 +480,10 @@ class _ActiveDownloadTile extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    _formatBytes(download.downloadedBytes ?? 0, download.totalBytes!),
+                    _formatBytes(
+                      download.downloadedBytes ?? 0,
+                      download.totalBytes!,
+                    ),
                     style: TextStyle(
                       fontSize: 12,
                       color: Theme.of(context).colorScheme.onSurfaceVariant,

@@ -95,7 +95,7 @@ class _TonesPageState extends State<TonesPage> {
             onRefresh: () => tonesProvider.load(widget.categoryId),
             child: ListView.builder(
               addAutomaticKeepAlives: false,
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(vertical: 16),
               itemCount:
                   tones.length +
                   (tonesProvider.hasMoreTones(widget.categoryId) ? 1 : 0),
