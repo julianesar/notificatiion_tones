@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:path/path.dart' as path;
 import '../../domain/entities/tone.dart';
 import '../../../../core/services/audio_service.dart';
 import '../../../../core/services/download_flow_service.dart';
@@ -14,10 +13,8 @@ import '../../../../core/services/filename_service.dart';
 import '../../../../shared/widgets/system_settings_permission_dialog.dart';
 import '../../../../core/di/service_locator.dart';
 import '../../../downloads/presentation/providers/downloads_provider.dart';
-import '../../../downloads/domain/entities/download_info.dart';
 import '../../../downloads/domain/repositories/download_repository.dart';
 import '../../../contacts/presentation/widgets/contact_picker_dialog.dart';
-import '../../../contacts/domain/entities/contact.dart';
 import '../../../favorites/presentation/providers/favorites_provider.dart';
 
 class TonePlayerPage extends StatefulWidget {
@@ -38,9 +35,7 @@ class TonePlayerPage extends StatefulWidget {
   State<TonePlayerPage> createState() => _TonePlayerPageState();
 }
 
-class _TonePlayerPageState extends State<TonePlayerPage>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _rotationController;
+class _TonePlayerPageState extends State<TonePlayerPage> {
   late Tone _currentTone;
   int _currentIndex = 0;
   bool _isLocalLoading = false;
@@ -52,10 +47,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
     _currentIndex = widget.tones.indexWhere(
       (tone) => tone.id == widget.tone.id,
     );
-    _rotationController = AnimationController(
-      duration: const Duration(seconds: 10),
-      vsync: this,
-    );
+    
     _initializeFavoriteStatus();
   }
 
@@ -70,7 +62,6 @@ class _TonePlayerPageState extends State<TonePlayerPage>
 
   @override
   void dispose() {
-    _rotationController.dispose();
     super.dispose();
   }
 
@@ -386,83 +377,85 @@ class _TonePlayerPageState extends State<TonePlayerPage>
         final colorScheme = Theme.of(context).colorScheme;
 
         return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 16),
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Text(
-                  'Configurar "${_currentTone.title}"',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Text(
-                  'Selecciona cómo quieres usar este tono',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 16),
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(2),
                   ),
-                  textAlign: TextAlign.center,
                 ),
-              ),
-              const SizedBox(height: 24),
-              ListTile(
-                leading: Icon(Icons.phone, color: colorScheme.primary),
-                title: const Text('Tono de llamada'),
-                subtitle: const Text(
-                  'Configurar como tono principal de llamadas',
+                const SizedBox(height: 20),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Text(
+                    'Configurar "${_currentTone.title}"',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                onTap: () {
-                  Navigator.pop(context);
-                  _configureAsCallRingtone();
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.notifications, color: colorScheme.primary),
-                title: const Text('Tono de notificación'),
-                subtitle: const Text('Configurar como tono de notificaciones'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _configureAsNotificationRingtone();
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.alarm, color: colorScheme.primary),
-                title: const Text('Tono de alarma'),
-                subtitle: const Text('Configurar como tono de alarmas'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _configureAsAlarmRingtone();
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.person, color: colorScheme.primary),
-                title: const Text('Tono de contacto'),
-                subtitle: const Text('Asignar a un contacto específico'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _configureAsContactRingtone();
-                },
-              ),
-              const SizedBox(height: 16),
-            ],
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Text(
+                    'Selecciona cómo quieres usar este tono',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                ListTile(
+                  leading: Icon(Icons.phone, color: colorScheme.primary),
+                  title: const Text('Tono de llamada'),
+                  subtitle: const Text(
+                    'Configurar como tono principal de llamadas',
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _configureAsCallRingtone();
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.notifications, color: colorScheme.primary),
+                  title: const Text('Tono de notificación'),
+                  subtitle: const Text('Configurar como tono de notificaciones'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _configureAsNotificationRingtone();
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.alarm, color: colorScheme.primary),
+                  title: const Text('Tono de alarma'),
+                  subtitle: const Text('Configurar como tono de alarmas'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _configureAsAlarmRingtone();
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.person, color: colorScheme.primary),
+                  title: const Text('Tono de contacto'),
+                  subtitle: const Text('Asignar a un contacto específico'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _configureAsContactRingtone();
+                  },
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
           ),
         );
       },
@@ -808,12 +801,6 @@ class _TonePlayerPageState extends State<TonePlayerPage>
         elevation: 0,
         backgroundColor: Colors.transparent,
         foregroundColor: colorScheme.onSurface,
-        title: Text(
-          _currentTone.title,
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-        ),
         centerTitle: true,
         actions: _currentTone.requiresAttribution == true
             ? [
@@ -830,86 +817,46 @@ class _TonePlayerPageState extends State<TonePlayerPage>
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
           child: Column(
             children: [
-              // Top spacing
-              Expanded(
-                flex: 1,
-                child: Container(),
-              ),
-
-              // Album Art / Visualization
+              // Musical Note Icon with background - matching reference image
               Container(
-                width: 260,
-                height: 260,
+                width: 280,
+                height: 280,
                 decoration: BoxDecoration(
+                  color: colorScheme.primary.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(24),
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      colorScheme.primary.withValues(alpha: 0.1),
-                      colorScheme.secondary.withValues(alpha: 0.05),
-                    ],
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 15,
-                      spreadRadius: 0,
-                      offset: Offset(0, 8),
-                    ),
-                  ],
                 ),
                 child: Center(
-                  child: AnimatedBuilder(
-                    animation: _rotationController,
-                    builder: (context, child) {
-                      return Transform.rotate(
-                        angle: _rotationController.value * 2 * 3.14159,
-                        child: Container(
-                          width: 100,
-                          height: 100,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(50),
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                colorScheme.primary.withValues(alpha: 0.3),
-                                colorScheme.secondary.withValues(alpha: 0.2),
-                              ],
-                            ),
-                          ),
-                          child: Icon(
-                            Icons.audiotrack,
-                            size: 50,
-                            color: colorScheme.primary,
-                          ),
-                        ),
-                      );
-                    },
+                  child: Icon(
+                    Icons.music_note,
+                    size: 120,
+                    color: colorScheme.primary,
                   ),
                 ),
               ),
 
               const SizedBox(height: 24),
 
-              // Track Title and Category
+              // Track Title and Category - matching reference image
               Column(
                 children: [
                   Text(
                     _currentTone.title,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w600,
                       color: colorScheme.onSurface,
+                      letterSpacing: -0.5,
                     ),
                     textAlign: TextAlign.center,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 8),
                   Text(
                     widget.categoryTitle,
-                    style: theme.textTheme.bodyMedium?.copyWith(
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w400,
                       color: colorScheme.onSurfaceVariant,
                     ),
                     textAlign: TextAlign.center,
@@ -917,11 +864,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                 ],
               ),
 
-              // Middle spacing
-              Expanded(
-                flex: 1,
-                child: Container(),
-              ),
+              const SizedBox(height: 24),
 
               // Progress Bar
               Consumer<AudioService>(
@@ -981,7 +924,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                 },
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
               // Control Buttons
               Row(
@@ -1011,24 +954,16 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                               audioService.currentlyPlayingId ==
                                   _currentTone.id);
 
-                      // Control animation based on audio service state
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (mounted) {
-                          if (isCurrentTonePlaying &&
-                              !_rotationController.isAnimating) {
-                            _rotationController.repeat();
-                            // Clear local loading when audio starts playing
-                            if (_isLocalLoading) {
-                              setState(() {
-                                _isLocalLoading = false;
-                              });
-                            }
-                          } else if (!isCurrentTonePlaying &&
-                              _rotationController.isAnimating) {
-                            _rotationController.stop();
+                      // Clear local loading when audio starts playing
+                      if (isCurrentTonePlaying && _isLocalLoading) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (mounted) {
+                            setState(() {
+                              _isLocalLoading = false;
+                            });
                           }
-                        }
-                      });
+                        });
+                      }
 
                       return Container(
                         width: 64,
@@ -1139,13 +1074,13 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                 ],
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
               // Set as Ringtone Button
               Container(
                 width: double.infinity,
                 height: 48,
-                margin: const EdgeInsets.only(bottom: 16),
+                margin: const EdgeInsets.only(bottom: 8),
                 child: ElevatedButton(
                   onPressed: () async {
                     await _downloadTone();
