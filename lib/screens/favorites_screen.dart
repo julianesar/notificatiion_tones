@@ -5,7 +5,6 @@ import '../features/favorites/domain/entities/favorite.dart';
 import '../features/tones/presentation/pages/tone_player_page.dart';
 import '../features/tones/domain/entities/tone.dart';
 import '../shared/widgets/tone_card_widget.dart';
-import '../shared/widgets/share_options_widget.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -46,14 +45,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               return Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.share),
-                    tooltip: 'Compartir favoritos',
-                    onPressed: () => _showShareFavorites(
-                      context,
-                      favoritesProvider.favorites,
-                    ),
-                  ),
                   IconButton(
                     icon: const Icon(Icons.delete_sweep),
                     tooltip: 'Limpiar favoritos',
@@ -189,31 +180,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           tones: favoritesList,
         ),
       ),
-    );
-  }
-
-  void _showShareFavorites(BuildContext context, List<Favorite> favorites) {
-    if (favorites.isEmpty) return;
-
-    // Convert favorites to Tone entities
-    final tones = favorites
-        .map(
-          (favorite) => Tone(
-            id: favorite.toneId,
-            title: favorite.title,
-            url: favorite.url,
-            requiresAttribution: favorite.requiresAttribution,
-            attributionText: favorite.attributionText,
-          ),
-        )
-        .toList();
-
-    // Show the share options modal
-    context.showShareOptionsModal(
-      tones: tones,
-      collectionName: 'Mis Favoritos',
-      showShareApp: true,
-      showShareCollection: true,
     );
   }
 

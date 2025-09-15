@@ -9,6 +9,7 @@ import '../../../tones/domain/entities/tone.dart';
 import '../../../tones/presentation/pages/tone_player_page.dart';
 import '../../../../core/services/filename_service.dart';
 import '../../../../core/di/service_locator.dart';
+import '../../../../core/theme/icon_colors.dart';
 
 class DownloadsPage extends StatefulWidget {
   const DownloadsPage({super.key});
@@ -96,14 +97,14 @@ class _DownloadsPageState extends State<DownloadsPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.history, size: 64, color: Colors.grey.shade400),
+                  Icon(Icons.history, size: 64, color: context.iconDisabled),
                   const SizedBox(height: 16),
                   Text(
                     'No hay tonos recientes',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
-                      color: Colors.grey.shade600,
+                      color: Colors.grey,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -130,7 +131,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.primary,
+                              color: context.iconPrimary,
                             ),
                       ),
                     ),
@@ -430,7 +431,7 @@ class _ActiveDownloadTile extends StatelessWidget {
                   download.status == DownloadStatus.waiting
                       ? Icons.schedule
                       : Icons.download,
-                  color: Theme.of(context).colorScheme.primary,
+                  color: context.iconPrimary,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -446,7 +447,7 @@ class _ActiveDownloadTile extends StatelessWidget {
                     '${(download.progress * 100).toInt()}%',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Theme.of(context).colorScheme.primary,
+                      color: context.iconPrimary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -461,7 +462,7 @@ class _ActiveDownloadTile extends StatelessWidget {
                   context,
                 ).colorScheme.surfaceContainerHighest,
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  Theme.of(context).colorScheme.primary,
+                  context.iconPrimary,
                 ),
               ),
             ),

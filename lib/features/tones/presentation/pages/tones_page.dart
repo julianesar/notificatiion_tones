@@ -4,6 +4,7 @@ import '../providers/tones_provider.dart';
 import 'tone_player_page.dart';
 import '../../../favorites/presentation/providers/favorites_provider.dart';
 import '../../../../shared/widgets/tone_card_widget.dart';
+import '../../../../core/theme/icon_colors.dart';
 
 class TonesPage extends StatefulWidget {
   final String categoryId;
@@ -29,7 +30,9 @@ class _TonesPageState extends State<TonesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title)),
+      appBar: AppBar(
+        title: Text(widget.title),
+      ),
       body: Consumer<TonesProvider>(
         builder: (context, tonesProvider, child) {
           final tones = tonesProvider.getTonesForCategory(widget.categoryId);
@@ -76,13 +79,13 @@ class _TonesPageState extends State<TonesPage> {
           }
 
           if (tones.isEmpty) {
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.music_off, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text(
+                  Icon(Icons.music_off, size: 64, color: context.iconDisabled),
+                  const SizedBox(height: 16),
+                  const Text(
                     'No hay tonos disponibles',
                     style: TextStyle(fontSize: 16, color: Colors.grey),
                   ),

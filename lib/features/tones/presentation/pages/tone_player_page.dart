@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../domain/entities/tone.dart';
 import '../../../../core/services/audio_service.dart';
@@ -12,6 +13,7 @@ import '../../../../core/services/media_store_service.dart';
 import '../../../../core/services/filename_service.dart';
 import '../../../../shared/widgets/system_settings_permission_dialog.dart';
 import '../../../../core/di/service_locator.dart';
+import '../../../../core/theme/icon_colors.dart';
 import '../../../downloads/presentation/providers/downloads_provider.dart';
 import '../../../downloads/domain/repositories/download_repository.dart';
 import '../../../contacts/presentation/widgets/contact_picker_dialog.dart';
@@ -35,19 +37,24 @@ class TonePlayerPage extends StatefulWidget {
   State<TonePlayerPage> createState() => _TonePlayerPageState();
 }
 
-class _TonePlayerPageState extends State<TonePlayerPage> {
+class _TonePlayerPageState extends State<TonePlayerPage> with WidgetsBindingObserver {
   late Tone _currentTone;
   int _currentIndex = 0;
   bool _isLocalLoading = false;
+  bool _pendingConfigurationModal = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
     _currentTone = widget.tone;
     _currentIndex = widget.tones.indexWhere(
       (tone) => tone.id == widget.tone.id,
     );
-    
+
+    // Status bar style is now configured globally
+
     _initializeFavoriteStatus();
   }
 
@@ -62,7 +69,28 @@ class _TonePlayerPageState extends State<TonePlayerPage> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    // System UI overlay style is managed globally
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    print('DEBUG: App lifecycle state changed to: $state');
+
+    if (state == AppLifecycleState.resumed && _pendingConfigurationModal) {
+      print('DEBUG: App resumido con modal de configuración pendiente');
+
+      // Mostrar modal con un pequeño delay para que la UI se estabilice
+      Future.delayed(const Duration(milliseconds: 200), () {
+        if (mounted && _pendingConfigurationModal) {
+          print('DEBUG: Mostrando modal de configuración pendiente');
+          _pendingConfigurationModal = false;
+          _showRingtoneConfigurationModal();
+        }
+      });
+    }
   }
 
   void _togglePlayPause() async {
@@ -200,6 +228,9 @@ class _TonePlayerPageState extends State<TonePlayerPage> {
   }
 
   Future<void> _downloadTone() async {
+    print('DEBUG: _downloadTone iniciado para: ${_currentTone.title}');
+    print('DEBUG: Widget mounted antes de descarga: $mounted');
+
     await DownloadFlowService.downloadToneWithPermissionsAndConfigure(
       context: context,
       toneId: _currentTone.id,
@@ -207,8 +238,13 @@ class _TonePlayerPageState extends State<TonePlayerPage> {
       url: _currentTone.url,
       requiresAttribution: _currentTone.requiresAttribution,
       attributionText: _currentTone.attributionText,
-      onDownloadSuccess: _showRingtoneConfigurationModal,
+      onDownloadSuccess: () {
+        print('DEBUG: onDownloadSuccess callback ejecutado, widget mounted: $mounted');
+        _showRingtoneConfigurationModalSafely();
+      },
     );
+
+    print('DEBUG: _downloadTone completado, widget mounted: $mounted');
   }
 
   // Professional method to wait for user to return and verify permission status
@@ -360,12 +396,38 @@ class _TonePlayerPageState extends State<TonePlayerPage> {
     );
   }
 
+  void _showRingtoneConfigurationModalSafely() {
+    print('DEBUG: _showRingtoneConfigurationModalSafely called, widget mounted: $mounted');
+
+    if (mounted) {
+      // Widget está montado - mostrar modal inmediatamente (caso normal)
+      print('DEBUG: Widget mounted, mostrando modal inmediatamente');
+      _showRingtoneConfigurationModal();
+    } else {
+      // Widget no está montado - caso muy raro que solo puede pasar con interrupciones de permisos
+      print('DEBUG: Widget no mounted, marcando modal como pendiente');
+      _pendingConfigurationModal = true;
+    }
+  }
+
   void _showRingtoneConfigurationModal() async {
+    print('DEBUG: _showRingtoneConfigurationModal called, checking context...');
+
+    if (!mounted) {
+      print('DEBUG: Widget no montado, no se puede mostrar modal');
+      return;
+    }
+
     // Refresh downloads before showing the modal
     final downloadsProvider = context.read<DownloadsProvider>();
     await downloadsProvider.refreshDownloadedFiles();
 
-    if (!mounted) return;
+    if (!mounted) {
+      print('DEBUG: Widget desmontado después de refreshDownloadedFiles');
+      return;
+    }
+
+    print('DEBUG: Mostrando modal de configuración para: ${_currentTone.title}');
 
     showModalBottomSheet(
       context: context,
@@ -395,9 +457,9 @@ class _TonePlayerPageState extends State<TonePlayerPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
                   child: Text(
                     'Configurar "${_currentTone.title}"',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                     textAlign: TextAlign.center,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -427,9 +489,14 @@ class _TonePlayerPageState extends State<TonePlayerPage> {
                   },
                 ),
                 ListTile(
-                  leading: Icon(Icons.notifications, color: colorScheme.primary),
+                  leading: Icon(
+                    Icons.notifications,
+                    color: colorScheme.primary,
+                  ),
                   title: const Text('Tono de notificación'),
-                  subtitle: const Text('Configurar como tono de notificaciones'),
+                  subtitle: const Text(
+                    'Configurar como tono de notificaciones',
+                  ),
                   onTap: () {
                     Navigator.pop(context);
                     _configureAsNotificationRingtone();
@@ -798,43 +865,59 @@ class _TonePlayerPageState extends State<TonePlayerPage> {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        foregroundColor: colorScheme.onSurface,
-        centerTitle: true,
+        title: const Text('Playing'),
         actions: _currentTone.requiresAttribution == true
             ? [
                 IconButton(
                   onPressed: () => _showAttributionDialog(context),
-                  icon: Icon(Icons.info_outline, color: colorScheme.onSurface),
+                  icon: const Icon(Icons.info_outline),
                   tooltip: 'Información de atribución',
                 ),
               ]
             : null,
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
-          child: Column(
-            children: [
-              // Musical Note Icon with background - matching reference image
-              Container(
-                width: 280,
-                height: 280,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+            child: Column(
+              children: [
+                const SizedBox(height: 24),
+                // Musical Note Icon with background - matching reference image
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final size = (constraints.maxWidth * 0.7).clamp(200.0, 280.0);
+                    return Container(
+                      width: size,
+                      height: size,
                 decoration: BoxDecoration(
-                  color: colorScheme.primary.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: Center(
-                  child: Icon(
-                    Icons.music_note,
-                    size: 120,
-                    color: colorScheme.primary,
+                  color: Color.lerp(colorScheme.primary, Colors.white, 0.8),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.grey.withOpacity(0.05),
+                    width: 1,
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.12),
+                      blurRadius: 10,
+                      offset: const Offset(0, 6),
+                      spreadRadius: -3,
+                    ),
+                  ],
                 ),
-              ),
+                      child: Center(
+                        child: Icon(
+                          Icons.music_note,
+                          size: size * 0.4,
+                          color: context.iconPrimary,
+                        ),
+                      ),
+                    );
+                  },
+                ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
               // Track Title and Category - matching reference image
               Column(
@@ -864,7 +947,7 @@ class _TonePlayerPageState extends State<TonePlayerPage> {
                 ],
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
               // Progress Bar
               Consumer<AudioService>(
@@ -885,8 +968,9 @@ class _TonePlayerPageState extends State<TonePlayerPage> {
                             overlayRadius: 12,
                           ),
                           activeTrackColor: colorScheme.primary,
-                          inactiveTrackColor:
-                              colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                          inactiveTrackColor: colorScheme
+                              .surfaceContainerHighest
+                              .withValues(alpha: 0.3),
                           thumbColor: colorScheme.primary,
                           overlayColor: colorScheme.primary.withValues(
                             alpha: 0.1,
@@ -924,7 +1008,7 @@ class _TonePlayerPageState extends State<TonePlayerPage> {
                 },
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
               // Control Buttons
               Row(
@@ -937,11 +1021,11 @@ class _TonePlayerPageState extends State<TonePlayerPage> {
                       Icons.skip_previous,
                       size: 32,
                       color: _hasPrevious()
-                          ? colorScheme.onSurfaceVariant.withValues(alpha: 0.7)
-                          : colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+                          ? context.iconSecondary
+                          : context.iconDisabled,
                     ),
                   ),
-                  
+
                   // Play/Pause Button
                   Consumer<AudioService>(
                     builder: (context, audioService, child) {
@@ -970,7 +1054,7 @@ class _TonePlayerPageState extends State<TonePlayerPage> {
                         height: 64,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: colorScheme.primary,
+                          color: context.iconPrimary,
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.15),
@@ -1002,7 +1086,7 @@ class _TonePlayerPageState extends State<TonePlayerPage> {
                       );
                     },
                   ),
-                  
+
                   // Next Button
                   IconButton(
                     onPressed: _hasNext() ? _playNextTone : null,
@@ -1010,14 +1094,14 @@ class _TonePlayerPageState extends State<TonePlayerPage> {
                       Icons.skip_next,
                       size: 32,
                       color: _hasNext()
-                          ? colorScheme.onSurfaceVariant.withValues(alpha: 0.7)
-                          : colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+                          ? context.iconSecondary
+                          : context.iconDisabled,
                     ),
                   ),
                 ],
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
               // Action Buttons Row
               Row(
@@ -1032,18 +1116,18 @@ class _TonePlayerPageState extends State<TonePlayerPage> {
                       return IconButton(
                         onPressed: _toggleFavorite,
                         icon: Icon(
-                          isFavorite ? Icons.favorite_outline : Icons.favorite_border,
+                          isFavorite ? Icons.favorite : Icons.favorite_border,
                           size: 28,
                           color: isFavorite
-                              ? Colors.red
-                              : colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                              ? context.iconFavoriteActive
+                              : context.iconSecondary,
                         ),
                       );
                     },
                   ),
-                  
+
                   const SizedBox(width: 16),
-                  
+
                   // Share Button
                   IconButton(
                     onPressed: () async {
@@ -1068,13 +1152,13 @@ class _TonePlayerPageState extends State<TonePlayerPage> {
                     icon: Icon(
                       Icons.share_outlined,
                       size: 28,
-                      color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                      color: context.iconSecondary,
                     ),
                   ),
                 ],
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
               // Set as Ringtone Button
               Container(
@@ -1102,7 +1186,9 @@ class _TonePlayerPageState extends State<TonePlayerPage> {
                   ),
                 ),
               ),
-            ],
+              const SizedBox(height: 16), // Bottom padding for safety
+              ],
+            ),
           ),
         ),
       ),

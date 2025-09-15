@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../core/services/audio_service.dart';
-import '../../features/tones/domain/entities/tone.dart';
+import '../../core/theme/icon_colors.dart';
 
-class ToneCardWidget extends StatelessWidget {
+class ToneCardWidget extends StatefulWidget {
   final String toneId;
   final String title;
   final String url;
@@ -33,9 +33,16 @@ class ToneCardWidget extends StatelessWidget {
   });
 
   @override
+  State<ToneCardWidget> createState() => _ToneCardWidgetState();
+}
+
+class _ToneCardWidgetState extends State<ToneCardWidget> {
+  bool _isLocalLoading = false;
+
+  @override
   Widget build(BuildContext context) {
     return Container(
-      key: ValueKey(toneId),
+      key: ValueKey(widget.toneId),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -55,10 +62,21 @@ class ToneCardWidget extends StatelessWidget {
       ),
       child: Consumer<AudioService>(
         builder: (context, audioService, child) {
-          final isPlaying = audioService.isTonePlaying(toneId);
-          final isAudioLoading =
-              audioService.isLoading &&
-              audioService.currentlyPlayingId == toneId;
+          final isPlaying = audioService.isTonePlaying(widget.toneId);
+          final isAudioLoading = _isLocalLoading ||
+              (audioService.isLoading &&
+                  audioService.currentlyPlayingId == widget.toneId);
+
+          // Clear local loading when audio starts playing
+          if (isPlaying && _isLocalLoading) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                setState(() {
+                  _isLocalLoading = false;
+                });
+              }
+            });
+          }
 
           return InkWell(
             onTap: () => _openFullScreenPlayer(context),
@@ -70,11 +88,11 @@ class ToneCardWidget extends StatelessWidget {
                   GestureDetector(
                     onTap: () => _toggleAudioPlay(context, audioService),
                     child: Container(
-                      key: ValueKey('${toneId}_button'),
+                      key: ValueKey('${widget.toneId}_button'),
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                        color: context.iconPrimary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: AnimatedSwitcher(
@@ -86,13 +104,13 @@ class ToneCardWidget extends StatelessWidget {
                                 height: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  color: Theme.of(context).primaryColor,
+                                  color: context.iconPrimary,
                                 ),
                               )
                             : Icon(
                                 isPlaying ? Icons.stop : Icons.play_arrow,
                                 key: ValueKey(isPlaying ? 'stop' : 'play'),
-                                color: Theme.of(context).primaryColor,
+                                color: context.iconPrimary,
                               ),
                       ),
                     ),
@@ -105,7 +123,7 @@ class ToneCardWidget extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            title,
+                            widget.title,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
@@ -116,7 +134,7 @@ class ToneCardWidget extends StatelessWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            subtitle,
+                            widget.subtitle,
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey[600],
@@ -126,11 +144,11 @@ class ToneCardWidget extends StatelessWidget {
                       ),
                     ),
                   ),
-                  if (showDeleteButtonInTrailing && onDelete != null)
+                  if (widget.showDeleteButtonInTrailing && widget.onDelete != null)
                     IconButton(
                       onPressed: () {
                         HapticFeedback.mediumImpact();
-                        onDelete!();
+                        widget.onDelete!();
                       },
                       icon: const Icon(Icons.delete_outline),
                       tooltip: 'Eliminar',
@@ -141,7 +159,7 @@ class ToneCardWidget extends StatelessWidget {
                       padding: const EdgeInsets.all(8),
                       child: Icon(
                         Icons.chevron_right,
-                        color: Colors.grey[400],
+                        color: context.iconDisabled,
                         size: 20,
                       ),
                     ),
@@ -158,18 +176,28 @@ class ToneCardWidget extends StatelessWidget {
     BuildContext context,
     AudioService audioService,
   ) async {
+    setState(() {
+      _isLocalLoading = true;
+    });
+
     try {
-      await audioService.toggleTone(toneId, url);
+      await audioService.toggleTone(widget.toneId, widget.url);
     } catch (e) {
       if (context.mounted) {
         _showErrorSnackBar(context, 'Error al reproducir audio: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLocalLoading = false;
+        });
       }
     }
   }
 
   void _openFullScreenPlayer(BuildContext context) {
-    if (onTap != null) {
-      onTap!();
+    if (widget.onTap != null) {
+      widget.onTap!();
     }
   }
 

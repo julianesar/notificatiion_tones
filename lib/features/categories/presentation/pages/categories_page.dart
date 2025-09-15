@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/categories_provider.dart';
 import '../../../tones/presentation/pages/tones_page.dart';
+import '../../../../core/theme/icon_colors.dart';
 
 class CategoriesPage extends StatefulWidget {
   const CategoriesPage({super.key});
@@ -21,9 +22,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Categorías')),
-      body: Consumer<CategoriesProvider>(
+    return Consumer<CategoriesProvider>(
         builder: (context, provider, child) {
           if (provider.isLoading) {
             return const Center(child: CircularProgressIndicator());
@@ -64,10 +63,27 @@ class _CategoriesPageState extends State<CategoriesPage> {
           }
 
           // ⬇️ Grid de 2 columnas como en code .txt
-          return RefreshIndicator(
-            onRefresh: () => provider.load(),
-            child: GridView.builder(
-              padding: const EdgeInsets.all(16),
+          return Column(
+            children: [
+              // Título "Categorías" alineado a la izquierda
+              Padding(
+                padding: const EdgeInsets.only(top: 16, right: 16, left: 16, bottom: 8),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Categorías',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+              // Grid de categorías
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: () => provider.load(),
+                  child: GridView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2, // 2 items por fila
                 crossAxisSpacing: 16, // espacio horizontal
@@ -93,12 +109,14 @@ class _CategoriesPageState extends State<CategoriesPage> {
                     );
                   },
                 );
-              },
-            ),
+                    },
+                  ),
+                ),
+              ),
+            ],
           );
         },
-      ),
-    );
+      );
   }
 }
 
@@ -161,10 +179,7 @@ class _CategoryTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.grey.withOpacity(0.05),
-          width: 1,
-        ),
+        border: Border.all(color: Colors.grey.withOpacity(0.05), width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.12),
@@ -182,11 +197,7 @@ class _CategoryTile extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                _getCategoryIcon(),
-                size: 40,
-                color: Theme.of(context).colorScheme.primary,
-              ),
+              Icon(_getCategoryIcon(), size: 40, color: context.iconPrimary),
               const SizedBox(height: 8),
               Text(
                 title,

@@ -289,11 +289,16 @@ class DownloadFlowService {
     PermissionsService permissionsService,
   ) async {
     final sdkVersion = await permissionsService.getAndroidSdkVersion();
-    
-    // Solo mostrar diálogo para Android 9 y anteriores
+
+    print('DEBUG: Android SDK version: $sdkVersion');
+
+    // Solo mostrar diálogo para Android 9 y anteriores (API 28 y menores)
     if (sdkVersion >= 29) {
+      print('DEBUG: Android 10+ detected - no storage permission needed');
       return true; // No se necesita permiso, proceder directamente
     }
+
+    print('DEBUG: Android 9 e inferior detected - storage permission required');
     
     final permissionType = 'Almacenamiento';
     final explanation = 'Necesitamos acceso al almacenamiento para poder guardar los tonos de notificación en tu dispositivo.';
@@ -459,8 +464,15 @@ class DownloadFlowService {
         print('DEBUG: Permisos concedidos exitosamente');
         // Pequeño delay para asegurar que la UI se estabilice después del diálogo de permisos
         await Future.delayed(const Duration(milliseconds: 300));
+
+        // Verificar que el context sigue montado después de la concesión de permisos
+        if (!context.mounted) {
+          print('DEBUG: Context no mounted después de conceder permisos, cancelando descarga');
+          return;
+        }
+        print('DEBUG: Context verificado como mounted después de permisos');
       }
-      
+
       // 5. Proceder con la descarga usando referencias guardadas
       await _proceedWithDownloadAndConfigure(
         context: context,
@@ -534,8 +546,11 @@ class DownloadFlowService {
       if (result.isSuccess) {
         print('DEBUG: Descarga exitosa, mostrando modal de configuración');
         HapticFeedback.lightImpact();
-        
-        // En lugar del snackbar verde, llamar al callback
+
+        // Ejecutar callback inmediatamente después de la descarga exitosa
+        print('DEBUG: Ejecutando callback inmediatamente después de descarga exitosa');
+
+        // Ejecutar el callback directamente - el widget receptor maneja el estado
         onDownloadSuccess();
         
       } else {
@@ -547,6 +562,10 @@ class DownloadFlowService {
           // Si ya está descargado, mostrar directamente el modal de configuración
           print('DEBUG: Archivo ya descargado, mostrando modal de configuración');
           HapticFeedback.lightImpact();
+
+          // Para archivos ya descargados, ejecutar callback inmediatamente
+          print('DEBUG: Ejecutando callback inmediatamente para archivo ya descargado');
+
           onDownloadSuccess();
           return;
         }

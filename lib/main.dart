@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'config/app_config.dart';
 import 'providers/theme_provider.dart';
@@ -29,6 +30,16 @@ import 'core/navigation/navigation_service.dart';
 void main() async {
   // Asegurarse de que los widgets estén inicializados
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Configure system UI overlay style globally
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
+      systemNavigationBarIconBrightness: Brightness.dark,
+    ),
+  );
 
   // Inicialización perezosa del singleton
   AppConfig.I();

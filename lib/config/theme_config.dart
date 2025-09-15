@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class ThemeConfig {
   // Light Theme Colors
@@ -44,11 +45,19 @@ class ThemeConfig {
         onError: Colors.white,
       ),
       appBarTheme: const AppBarTheme(
-        elevation: 0,
+        elevation: 4,
         centerTitle: true,
-        backgroundColor: backgroundLight,
-        foregroundColor: textPrimaryLight,
-        iconTheme: IconThemeData(color: textPrimaryLight),
+        backgroundColor: primaryLight,
+        foregroundColor: Colors.white,
+        iconTheme: IconThemeData(color: Colors.white),
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: primaryLight,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.zero,
+        ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -94,11 +103,19 @@ class ThemeConfig {
         onError: Colors.black,
       ),
       appBarTheme: const AppBarTheme(
-        elevation: 0,
+        elevation: 4,
         centerTitle: true,
-        backgroundColor: backgroundDark,
-        foregroundColor: textPrimaryDark,
-        iconTheme: IconThemeData(color: textPrimaryDark),
+        backgroundColor: primaryDark,
+        foregroundColor: Colors.white,
+        iconTheme: IconThemeData(color: Colors.white),
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: primaryDark,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.zero,
+        ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(

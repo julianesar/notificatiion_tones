@@ -171,6 +171,27 @@ class MainActivity : FlutterActivity() {
                 return false
             }
 
+            // Additional validations for Android 9 and below
+            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
+                // Extra validation for older Android versions
+                if (filePath.isBlank() || ringtoneType.isBlank()) {
+                    return false
+                }
+
+                if (!file.isFile() || file.length() == 0L) {
+                    return false
+                }
+
+                // Validate file extension for Android 9 and below
+                val validExtensions = listOf(".mp3", ".wav", ".ogg", ".m4a", ".aac")
+                val hasValidExtension = validExtensions.any {
+                    file.name.endsWith(it, ignoreCase = true)
+                }
+                if (!hasValidExtension) {
+                    return false
+                }
+            }
+
             // Add the audio file to MediaStore
             val uri = addToMediaStore(file) ?: return false
 
@@ -190,25 +211,109 @@ class MainActivity : FlutterActivity() {
 
     private fun addToMediaStore(file: File): Uri? {
         return try {
-            val values = ContentValues().apply {
-                put(MediaStore.MediaColumns.DISPLAY_NAME, file.name)
-                put(MediaStore.MediaColumns.MIME_TYPE, "audio/*")
-                put(MediaStore.MediaColumns.RELATIVE_PATH, "Music/Ringtones")
-                put(MediaStore.Audio.Media.IS_RINGTONE, true)
-                put(MediaStore.Audio.Media.IS_NOTIFICATION, true)
-                put(MediaStore.Audio.Media.IS_ALARM, true)
-                put(MediaStore.Audio.Media.IS_MUSIC, false)
-            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                // Android 10+ - Original working logic
+                val values = ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, file.name)
+                    put(MediaStore.MediaColumns.MIME_TYPE, "audio/*")
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, "Music/Ringtones")
+                    put(MediaStore.Audio.Media.IS_RINGTONE, true)
+                    put(MediaStore.Audio.Media.IS_NOTIFICATION, true)
+                    put(MediaStore.Audio.Media.IS_ALARM, true)
+                    put(MediaStore.Audio.Media.IS_MUSIC, false)
+                }
 
-            val uri = contentResolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, values)
-            uri?.let {
-                contentResolver.openOutputStream(it)?.use { outputStream ->
-                    file.inputStream().use { inputStream ->
-                        inputStream.copyTo(outputStream)
+                val uri = contentResolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, values)
+                uri?.let {
+                    contentResolver.openOutputStream(it)?.use { outputStream ->
+                        file.inputStream().use { inputStream ->
+                            inputStream.copyTo(outputStream)
+                        }
                     }
                 }
+                uri
+            } else {
+                // Android 9 and below - Check if file already exists in MediaStore first
+                val fileName = file.name
+                if (fileName.isNullOrBlank()) {
+                    return null
+                }
+
+                val existingUri = findExistingMediaStoreEntry(fileName)
+                if (existingUri != null) {
+                    return existingUri
+                }
+
+                val values = ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+
+                    // More specific MIME type for Android 9 and below
+                    val mimeType = when {
+                        fileName.endsWith(".mp3", ignoreCase = true) -> "audio/mpeg"
+                        fileName.endsWith(".wav", ignoreCase = true) -> "audio/wav"
+                        fileName.endsWith(".ogg", ignoreCase = true) -> "audio/ogg"
+                        fileName.endsWith(".m4a", ignoreCase = true) -> "audio/mp4"
+                        fileName.endsWith(".aac", ignoreCase = true) -> "audio/aac"
+                        else -> "audio/mpeg"
+                    }
+                    put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
+
+                    // Use DATA column for Android 9 and below
+                    val ringtoneDir = File(android.os.Environment.getExternalStorageDirectory(), "Music/Ringtones")
+                    if (!ringtoneDir.exists()) {
+                        ringtoneDir.mkdirs()
+                    }
+                    val targetFile = File(ringtoneDir, fileName)
+                    put(MediaStore.MediaColumns.DATA, targetFile.absolutePath)
+
+                    put(MediaStore.Audio.Media.IS_RINGTONE, true)
+                    put(MediaStore.Audio.Media.IS_NOTIFICATION, true)
+                    put(MediaStore.Audio.Media.IS_ALARM, true)
+                    put(MediaStore.Audio.Media.IS_MUSIC, false)
+                }
+
+                val uri = contentResolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, values)
+                uri?.let {
+                    contentResolver.openOutputStream(it)?.use { outputStream ->
+                        file.inputStream().use { inputStream ->
+                            inputStream.copyTo(outputStream)
+                        }
+                    }
+                }
+                uri
             }
-            uri
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    private fun findExistingMediaStoreEntry(fileName: String): Uri? {
+        return try {
+            val projection = arrayOf(
+                MediaStore.Audio.Media._ID,
+                MediaStore.Audio.Media.DISPLAY_NAME
+            )
+
+            val selection = "${MediaStore.Audio.Media.DISPLAY_NAME} = ? AND ${MediaStore.Audio.Media.IS_RINGTONE} = 1"
+            val selectionArgs = arrayOf(fileName)
+
+            val cursor = contentResolver.query(
+                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                projection,
+                selection,
+                selectionArgs,
+                null
+            )
+
+            cursor?.use {
+                if (it.moveToFirst()) {
+                    val idColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
+                    val id = it.getLong(idColumn)
+                    return Uri.withAppendedPath(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id.toString())
+                }
+            }
+            null
         } catch (e: Exception) {
             e.printStackTrace()
             null
@@ -254,7 +359,30 @@ class MainActivity : FlutterActivity() {
 
             // Set custom ringtone for specific contact
             val values = ContentValues()
-            values.put(ContactsContract.Contacts.CUSTOM_RINGTONE, uri.toString())
+
+            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
+                // Android 9 and below - safely handle uri.toString()
+                val uriString = try {
+                    uri.toString()
+                } catch (e: Exception) {
+                    // If uri.toString() fails, try to get the URI string safely
+                    uri.scheme?.let { scheme ->
+                        if (scheme.isNotEmpty()) {
+                            "$scheme://${uri.authority}${uri.path ?: ""}${uri.query?.let { "?$it" } ?: ""}"
+                        } else {
+                            null
+                        }
+                    }
+                }
+
+                if (uriString == null) {
+                    return false
+                }
+                values.put(ContactsContract.Contacts.CUSTOM_RINGTONE, uriString)
+            } else {
+                // Android 10+ - Original working logic
+                values.put(ContactsContract.Contacts.CUSTOM_RINGTONE, uri.toString())
+            }
 
             val rowsUpdated = contentResolver.update(
                 ContactsContract.Contacts.CONTENT_URI,

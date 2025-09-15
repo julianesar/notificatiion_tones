@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/services/share_service.dart';
 import '../../features/tones/domain/entities/tone.dart';
+import '../../core/theme/icon_colors.dart';
 
 /// Reusable widget for common sharing options
 /// Provides consistent sharing UI across the app
@@ -27,7 +28,7 @@ class ShareOptionsWidget extends StatelessWidget {
       children: [
         if (showShareCollection && tones != null && tones!.isNotEmpty) ...[
           ListTile(
-            leading: const Icon(Icons.share_outlined),
+            leading: Icon(Icons.share_outlined, color: context.iconSecondary),
             title: Text('Compartir ${collectionName ?? 'colección'} (${tones!.length} tonos)'),
             subtitle: const Text('Comparte todos los tonos de esta colección'),
             onTap: () async {
@@ -67,7 +68,7 @@ class ShareOptionsWidget extends StatelessWidget {
         
         if (showShareApp) ...[
           ListTile(
-            leading: const Icon(Icons.mobile_friendly),
+            leading: Icon(Icons.mobile_friendly, color: context.iconSecondary),
             title: const Text('Compartir aplicación'),
             subtitle: const Text('Recomienda Sonidos de Notificaciones a tus amigos'),
             onTap: () async {
