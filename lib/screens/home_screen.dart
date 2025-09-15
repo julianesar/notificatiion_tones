@@ -10,15 +10,7 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sonidos de Notificaciones'),
-        centerTitle: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              // TODO: Implement settings functionality
-            },
-          ),
-        ],
+        centerTitle: true,
       ),
       body: const CategoriesPage(),
     );

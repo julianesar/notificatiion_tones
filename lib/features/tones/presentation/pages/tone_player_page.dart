@@ -37,7 +37,8 @@ class TonePlayerPage extends StatefulWidget {
   State<TonePlayerPage> createState() => _TonePlayerPageState();
 }
 
-class _TonePlayerPageState extends State<TonePlayerPage> with WidgetsBindingObserver {
+class _TonePlayerPageState extends State<TonePlayerPage>
+    with WidgetsBindingObserver {
   late Tone _currentTone;
   int _currentIndex = 0;
   bool _isLocalLoading = false;
@@ -239,7 +240,9 @@ class _TonePlayerPageState extends State<TonePlayerPage> with WidgetsBindingObse
       requiresAttribution: _currentTone.requiresAttribution,
       attributionText: _currentTone.attributionText,
       onDownloadSuccess: () {
-        print('DEBUG: onDownloadSuccess callback ejecutado, widget mounted: $mounted');
+        print(
+          'DEBUG: onDownloadSuccess callback ejecutado, widget mounted: $mounted',
+        );
         _showRingtoneConfigurationModalSafely();
       },
     );
@@ -397,7 +400,9 @@ class _TonePlayerPageState extends State<TonePlayerPage> with WidgetsBindingObse
   }
 
   void _showRingtoneConfigurationModalSafely() {
-    print('DEBUG: _showRingtoneConfigurationModalSafely called, widget mounted: $mounted');
+    print(
+      'DEBUG: _showRingtoneConfigurationModalSafely called, widget mounted: $mounted',
+    );
 
     if (mounted) {
       // Widget está montado - mostrar modal inmediatamente (caso normal)
@@ -427,7 +432,9 @@ class _TonePlayerPageState extends State<TonePlayerPage> with WidgetsBindingObse
       return;
     }
 
-    print('DEBUG: Mostrando modal de configuración para: ${_currentTone.title}');
+    print(
+      'DEBUG: Mostrando modal de configuración para: ${_currentTone.title}',
+    );
 
     showModalBottomSheet(
       context: context,
@@ -879,33 +886,43 @@ class _TonePlayerPageState extends State<TonePlayerPage> with WidgetsBindingObse
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 8.0,
+            ),
             child: Column(
               children: [
                 const SizedBox(height: 24),
                 // Musical Note Icon with background - matching reference image
                 LayoutBuilder(
                   builder: (context, constraints) {
-                    final size = (constraints.maxWidth * 0.7).clamp(200.0, 280.0);
+                    final size = (constraints.maxWidth * 0.7).clamp(
+                      200.0,
+                      280.0,
+                    );
                     return Container(
                       width: size,
                       height: size,
-                decoration: BoxDecoration(
-                  color: Color.lerp(colorScheme.primary, Colors.white, 0.8),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Colors.grey.withOpacity(0.05),
-                    width: 1,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.12),
-                      blurRadius: 10,
-                      offset: const Offset(0, 6),
-                      spreadRadius: -3,
-                    ),
-                  ],
-                ),
+                      decoration: BoxDecoration(
+                        color: Color.lerp(
+                          colorScheme.primary,
+                          Colors.white,
+                          0.8,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Colors.grey.withOpacity(0.05),
+                          width: 1,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.12),
+                            blurRadius: 10,
+                            offset: const Offset(0, 6),
+                            spreadRadius: -3,
+                          ),
+                        ],
+                      ),
                       child: Center(
                         child: Icon(
                           Icons.music_note,
@@ -917,276 +934,276 @@ class _TonePlayerPageState extends State<TonePlayerPage> with WidgetsBindingObse
                   },
                 ),
 
-              const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-              // Track Title and Category - matching reference image
-              Column(
-                children: [
-                  Text(
-                    _currentTone.title,
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w600,
-                      color: colorScheme.onSurface,
-                      letterSpacing: -0.5,
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    widget.categoryTitle,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w400,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              // Progress Bar
-              Consumer<AudioService>(
-                builder: (context, audioService, child) {
-                  final duration = audioService.duration ?? Duration.zero;
-                  final position = audioService.position;
-                  final progress = audioService.progress;
-
-                  return Column(
-                    children: [
-                      SliderTheme(
-                        data: SliderTheme.of(context).copyWith(
-                          trackHeight: 3,
-                          thumbShape: const RoundSliderThumbShape(
-                            enabledThumbRadius: 6,
-                          ),
-                          overlayShape: const RoundSliderOverlayShape(
-                            overlayRadius: 12,
-                          ),
-                          activeTrackColor: colorScheme.primary,
-                          inactiveTrackColor: colorScheme
-                              .surfaceContainerHighest
-                              .withValues(alpha: 0.3),
-                          thumbColor: colorScheme.primary,
-                          overlayColor: colorScheme.primary.withValues(
-                            alpha: 0.1,
-                          ),
-                        ),
-                        child: Slider(
-                          value: progress,
-                          onChanged: duration.inMilliseconds > 0
-                              ? _seekTo
-                              : null,
-                        ),
+                // Track Title and Category - matching reference image
+                Column(
+                  children: [
+                    Text(
+                      _currentTone.title,
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurface,
+                        letterSpacing: -0.5,
                       ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              audioService.formatDuration(position),
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            Text(
-                              audioService.formatDuration(duration),
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-
-              const SizedBox(height: 16),
-
-              // Control Buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  // Previous Button
-                  IconButton(
-                    onPressed: _hasPrevious() ? _playPreviousTone : null,
-                    icon: Icon(
-                      Icons.skip_previous,
-                      size: 32,
-                      color: _hasPrevious()
-                          ? context.iconSecondary
-                          : context.iconDisabled,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
+                    const SizedBox(height: 8),
+                    Text(
+                      widget.categoryTitle,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w400,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
 
-                  // Play/Pause Button
-                  Consumer<AudioService>(
-                    builder: (context, audioService, child) {
-                      final isCurrentTonePlaying = audioService.isTonePlaying(
-                        _currentTone.id,
-                      );
-                      final isLoading =
-                          _isLocalLoading ||
-                          (audioService.isLoading &&
-                              audioService.currentlyPlayingId ==
-                                  _currentTone.id);
+                const SizedBox(height: 16),
 
-                      // Clear local loading when audio starts playing
-                      if (isCurrentTonePlaying && _isLocalLoading) {
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (mounted) {
-                            setState(() {
-                              _isLocalLoading = false;
-                            });
-                          }
-                        });
-                      }
+                // Progress Bar
+                Consumer<AudioService>(
+                  builder: (context, audioService, child) {
+                    final duration = audioService.duration ?? Duration.zero;
+                    final position = audioService.position;
+                    final progress = audioService.progress;
 
-                      return Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: context.iconPrimary,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.15),
-                              blurRadius: 8,
-                              spreadRadius: 0,
-                              offset: Offset(0, 4),
+                    return Column(
+                      children: [
+                        SliderTheme(
+                          data: SliderTheme.of(context).copyWith(
+                            trackHeight: 3,
+                            thumbShape: const RoundSliderThumbShape(
+                              enabledThumbRadius: 6,
                             ),
-                          ],
+                            overlayShape: const RoundSliderOverlayShape(
+                              overlayRadius: 12,
+                            ),
+                            activeTrackColor: colorScheme.primary,
+                            inactiveTrackColor: colorScheme
+                                .surfaceContainerHighest
+                                .withValues(alpha: 0.3),
+                            thumbColor: colorScheme.primary,
+                            overlayColor: colorScheme.primary.withValues(
+                              alpha: 0.1,
+                            ),
+                          ),
+                          child: Slider(
+                            value: progress,
+                            onChanged: duration.inMilliseconds > 0
+                                ? _seekTo
+                                : null,
+                          ),
                         ),
-                        child: IconButton(
-                          onPressed: isLoading ? null : _togglePlayPause,
-                          icon: isLoading
-                              ? SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.5,
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                audioService.formatDuration(position),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              Text(
+                                audioService.formatDuration(duration),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+
+                const SizedBox(height: 16),
+
+                // Control Buttons
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    // Previous Button
+                    IconButton(
+                      onPressed: _hasPrevious() ? _playPreviousTone : null,
+                      icon: Icon(
+                        Icons.skip_previous,
+                        size: 32,
+                        color: _hasPrevious()
+                            ? context.iconSecondary
+                            : context.iconDisabled,
+                      ),
+                    ),
+
+                    // Play/Pause Button
+                    Consumer<AudioService>(
+                      builder: (context, audioService, child) {
+                        final isCurrentTonePlaying = audioService.isTonePlaying(
+                          _currentTone.id,
+                        );
+                        final isLoading =
+                            _isLocalLoading ||
+                            (audioService.isLoading &&
+                                audioService.currentlyPlayingId ==
+                                    _currentTone.id);
+
+                        // Clear local loading when audio starts playing
+                        if (isCurrentTonePlaying && _isLocalLoading) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            if (mounted) {
+                              setState(() {
+                                _isLocalLoading = false;
+                              });
+                            }
+                          });
+                        }
+
+                        return Container(
+                          width: 64,
+                          height: 64,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: context.iconPrimary,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.15),
+                                blurRadius: 8,
+                                spreadRadius: 0,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: IconButton(
+                            onPressed: isLoading ? null : _togglePlayPause,
+                            icon: isLoading
+                                ? SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                      color: colorScheme.onPrimary,
+                                    ),
+                                  )
+                                : Icon(
+                                    isCurrentTonePlaying
+                                        ? Icons.pause
+                                        : Icons.play_arrow,
+                                    size: 28,
                                     color: colorScheme.onPrimary,
                                   ),
-                                )
-                              : Icon(
-                                  isCurrentTonePlaying
-                                      ? Icons.pause
-                                      : Icons.play_arrow,
-                                  size: 28,
-                                  color: colorScheme.onPrimary,
-                                ),
-                        ),
-                      );
-                    },
-                  ),
-
-                  // Next Button
-                  IconButton(
-                    onPressed: _hasNext() ? _playNextTone : null,
-                    icon: Icon(
-                      Icons.skip_next,
-                      size: 32,
-                      color: _hasNext()
-                          ? context.iconSecondary
-                          : context.iconDisabled,
+                          ),
+                        );
+                      },
                     ),
-                  ),
-                ],
-              ),
 
-              const SizedBox(height: 16),
+                    // Next Button
+                    IconButton(
+                      onPressed: _hasNext() ? _playNextTone : null,
+                      icon: Icon(
+                        Icons.skip_next,
+                        size: 32,
+                        color: _hasNext()
+                            ? context.iconSecondary
+                            : context.iconDisabled,
+                      ),
+                    ),
+                  ],
+                ),
 
-              // Action Buttons Row
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Favorite Button
-                  Consumer<FavoritesProvider>(
-                    builder: (context, favoritesProvider, child) {
-                      final isFavorite = favoritesProvider.isFavoriteSync(
-                        _currentTone.id,
-                      );
-                      return IconButton(
-                        onPressed: _toggleFavorite,
-                        icon: Icon(
-                          isFavorite ? Icons.favorite : Icons.favorite_border,
-                          size: 28,
-                          color: isFavorite
-                              ? context.iconFavoriteActive
-                              : context.iconSecondary,
-                        ),
-                      );
-                    },
-                  ),
+                const SizedBox(height: 16),
 
-                  const SizedBox(width: 16),
+                // Action Buttons Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Favorite Button
+                    Consumer<FavoritesProvider>(
+                      builder: (context, favoritesProvider, child) {
+                        final isFavorite = favoritesProvider.isFavoriteSync(
+                          _currentTone.id,
+                        );
+                        return IconButton(
+                          onPressed: _toggleFavorite,
+                          icon: Icon(
+                            isFavorite ? Icons.favorite : Icons.favorite_border,
+                            size: 28,
+                            color: isFavorite
+                                ? context.iconFavoriteActive
+                                : context.iconSecondary,
+                          ),
+                        );
+                      },
+                    ),
 
-                  // Share Button
-                  IconButton(
+                    const SizedBox(width: 16),
+
+                    // Share Button
+                    IconButton(
+                      onPressed: () async {
+                        try {
+                          await context.shareToneEntity(
+                            tone: _currentTone,
+                            additionalMessage:
+                                'Desde la categoría: ${widget.categoryTitle}',
+                          );
+
+                          _showSnackBar(
+                            context,
+                            'Compartiendo "${_currentTone.title}"',
+                          );
+                        } catch (e) {
+                          _showSnackBar(
+                            context,
+                            'Error al compartir: ${e.toString()}',
+                          );
+                        }
+                      },
+                      icon: Icon(
+                        Icons.share_outlined,
+                        size: 28,
+                        color: context.iconSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                // Set as Ringtone Button
+                Container(
+                  width: double.infinity,
+                  height: 48,
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: ElevatedButton(
                     onPressed: () async {
-                      try {
-                        await context.shareToneEntity(
-                          tone: _currentTone,
-                          additionalMessage:
-                              'Desde la categoría: ${widget.categoryTitle}',
-                        );
-
-                        _showSnackBar(
-                          context,
-                          'Compartiendo "${_currentTone.title}"',
-                        );
-                      } catch (e) {
-                        _showSnackBar(
-                          context,
-                          'Error al compartir: ${e.toString()}',
-                        );
-                      }
+                      await _downloadTone();
                     },
-                    icon: Icon(
-                      Icons.share_outlined,
-                      size: 28,
-                      color: context.iconSecondary,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              // Set as Ringtone Button
-              Container(
-                width: double.infinity,
-                height: 48,
-                margin: const EdgeInsets.only(bottom: 8),
-                child: ElevatedButton(
-                  onPressed: () async {
-                    await _downloadTone();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: colorScheme.primary,
-                    foregroundColor: colorScheme.onPrimary,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                  ),
-                  child: Text(
-                    'Set as Ringtone',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                    child: Text(
+                      'Set as Ringtone',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16), // Bottom padding for safety
+                const SizedBox(height: 16), // Bottom padding for safety
               ],
             ),
           ),
