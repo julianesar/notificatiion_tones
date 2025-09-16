@@ -31,7 +31,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Recent'),
+        title: const Text('Recientes'),
         actions: [
           IconButton(
             icon: const Icon(Icons.folder_open),

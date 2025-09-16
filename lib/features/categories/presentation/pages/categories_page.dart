@@ -67,7 +67,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
             children: [
               // Título "Categorías" alineado a la izquierda
               Padding(
-                padding: const EdgeInsets.only(top: 16, right: 16, left: 16, bottom: 8),
+                padding: const EdgeInsets.only(top: 16, right: 24, left: 24, bottom: 16),
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
@@ -83,7 +83,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
                 child: RefreshIndicator(
                   onRefresh: () => provider.load(),
                   child: GridView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2, // 2 items por fila
                 crossAxisSpacing: 16, // espacio horizontal
@@ -110,8 +110,8 @@ class _CategoriesPageState extends State<CategoriesPage> {
                     );
                   },
                 );
-                    },
-                  ),
+              },
+            ),
                 ),
               ),
             ],

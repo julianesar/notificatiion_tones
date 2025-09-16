@@ -872,7 +872,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: const Text('Playing'),
+        title: const Text('Reproduciendo'),
         actions: _currentTone.requiresAttribution == true
             ? [
                 IconButton(
@@ -1195,7 +1195,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                       ),
                     ),
                     child: Text(
-                      'Set as Ringtone',
+                      'Establecer como tono',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                         color: Colors.white,

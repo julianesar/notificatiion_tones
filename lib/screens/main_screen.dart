@@ -60,14 +60,14 @@ class _MainScreenState extends State<MainScreen> {
         },
         type: BottomNavigationBarType.fixed,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
           BottomNavigationBarItem(
             icon: Icon(Icons.favorite),
-            label: 'Favorites',
+            label: 'Favoritos',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.history),
-            label: 'Recent',
+            label: 'Recientes',
           ),
         ],
         ),
