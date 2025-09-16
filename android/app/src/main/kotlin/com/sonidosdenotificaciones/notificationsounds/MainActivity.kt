@@ -1,4 +1,4 @@
-package com.example.my_new_app
+package com.sonidosdenotificaciones.notificationsounds
 
 import android.app.Activity
 import android.content.Intent
@@ -19,7 +19,7 @@ import io.flutter.plugin.common.MethodChannel
 import java.io.File
 
 class MainActivity : FlutterActivity() {
-    private val CHANNEL = "com.example.notifications_sounds/ringtone_config"
+    private val CHANNEL = "com.sonidosdenotificaciones.notificationsounds/ringtone_config"
     private val SYSTEM_ALERT_WINDOW_REQUEST = 100
     private val CONTACTS_PERMISSION_REQUEST = 101
     
