@@ -5,6 +5,7 @@ import '../features/favorites/domain/entities/favorite.dart';
 import '../features/tones/presentation/pages/tone_player_page.dart';
 import '../features/tones/domain/entities/tone.dart';
 import '../shared/widgets/tone_card_widget.dart';
+import '../core/theme/icon_colors.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -216,7 +217,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               } catch (e) {
                 if (context.mounted) {
                   final messenger = ScaffoldMessenger.of(context);
-                  final theme = Theme.of(context);
                   messenger.showSnackBar(
                     SnackBar(
                       content: Row(
@@ -228,7 +228,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                           ),
                         ],
                       ),
-                      backgroundColor: theme.colorScheme.error,
+                      backgroundColor: context.iconAppRed,
                       duration: const Duration(seconds: 3),
                       behavior: SnackBarBehavior.floating,
                       shape: RoundedRectangleBorder(
@@ -239,6 +239,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 }
               }
             },
+            style: TextButton.styleFrom(
+              foregroundColor: context.iconAppRed,
+            ),
             child: const Text('Eliminar todos'),
           ),
         ],

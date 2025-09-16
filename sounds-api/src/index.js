@@ -46,41 +46,52 @@ export default {
     // Permite saltar cache con ?nocache=1
     const bypassCache = url.searchParams.has("nocache");
 
-    // /v1/categories
+    // /v1/categories  -> devuelve iconUrl construido desde app_config.cdn_base
     if (url.pathname === "/v1/categories") {
       const cacheReq = new Request(url.toString()); // clave válida (URL completa)
 
-      if (!bypassCache) {
-        return withCache(
-          cacheReq,
-          async () => {
-            const rs = await env.DB
-              .prepare("SELECT category_id AS id, title FROM categories ORDER BY sort_order, title")
-              .all();
-            const results = rs?.results || [];
+      const fetcher = async () => {
+        // lee cdn_base como haces en /v1/tones
+        const cdnRow = await env.DB.prepare("SELECT value FROM app_config WHERE key='cdn_base'").first();
+        const cdnBaseRaw = cdnRow?.value || "";
+        const cdnBase = String(cdnBaseRaw).replace(/\/+$/, ""); // quita slash final
 
-            // ETag seguro sin usar .at()
-            const first = results.length ? results[0].id : "";
-            const last  = results.length ? results[results.length - 1].id : "";
-            const etag  = `"cat-${results.length}-${first}-${last}"`;
+        const rs = await env.DB
+          .prepare("SELECT category_id AS id, title, icon_rel_path FROM categories ORDER BY sort_order, title")
+          .all();
+        const results = rs?.results || [];
 
-            const res = json({ data: results }, { ttl: 300, etag });
-            const h = new Headers(res.headers);
-            for (const [k, v] of Object.entries(corsHeaders(origin))) h.set(k, v);
-            return new Response(res.body, { headers: h, status: 200 });
+        // construye datos con iconUrl (o null si no hay ruta)
+        const data = results.map(r => {
+          const rel = r.icon_rel_path || null;
+          let iconUrl = null;
+          if (rel) {
+            const relClean = String(rel).replace(/^\/+/, ""); // quita slash inicial
+            iconUrl = cdnBase ? `${cdnBase}/${relClean}` : `/${relClean}`;
           }
-        );
-      }
+          return {
+            id: r.id,
+            title: r.title,
+            iconUrl,
+          };
+        });
 
-      // sin cache (nocache=1)
-      const rs = await env.DB
-        .prepare("SELECT category_id AS id, title FROM categories ORDER BY sort_order, title")
-        .all();
-      const results = rs?.results || [];
-      const res = json({ data: results }, { ttl: 0 });
-      const h = new Headers(res.headers);
-      for (const [k, v] of Object.entries(corsHeaders(origin))) h.set(k, v);
-      return new Response(res.body, { headers: h, status: 200 });
+        // ETag: count + firstId + lastId (seguro sin updated_at)
+        const first = results.length ? results[0].id : "";
+        const last  = results.length ? results[results.length - 1].id : "";
+        const etag  = `"cat-${results.length}-${first}-${last}"`;
+
+        const res = json({ data }, { ttl: 300, etag });
+        const h = new Headers(res.headers);
+        for (const [k, v] of Object.entries(corsHeaders(origin))) h.set(k, v);
+        return new Response(res.body, { headers: h, status: 200 });
+      };
+
+      if (!bypassCache) {
+        return withCache(cacheReq, fetcher);
+      }
+      // nocache=1 -> no cache
+      return fetcher();
     }
 
     // /v1/tones?category=annoying&limit=100&offset=0
@@ -95,7 +106,8 @@ export default {
 
       const fetcher = async () => {
         const cdn = await env.DB.prepare("SELECT value FROM app_config WHERE key='cdn_base'").first();
-        const cdnBase = cdn?.value || "";
+        const cdnBaseRaw = cdn?.value || "";
+        const cdnBase = String(cdnBaseRaw).replace(/\/+$/, "");
 
         const { results } = await env.DB.prepare(
           `SELECT tone_id AS id, title, rel_path, requires_attribution AS req_attr, attribution_text
@@ -105,7 +117,7 @@ export default {
         const data = results.map(r => ({
           id: r.id,
           title: r.title,
-          url: cdnBase + "/" + r.rel_path,
+          url: cdnBase ? `${cdnBase}/${String(r.rel_path).replace(/^\/+/, '')}` : `/${r.rel_path}`,
           requiresAttribution: !!r.req_attr,
           attributionText: r.attribution_text || null,
         }));

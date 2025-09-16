@@ -8,8 +8,8 @@ import '../../../../shared/widgets/share_options_widget.dart';
 import '../../../tones/domain/entities/tone.dart';
 import '../../../tones/presentation/pages/tone_player_page.dart';
 import '../../../../core/services/filename_service.dart';
-import '../../../../core/di/service_locator.dart';
 import '../../../../core/theme/icon_colors.dart';
+import '../../../../core/di/service_locator.dart';
 
 class DownloadsPage extends StatefulWidget {
   const DownloadsPage({super.key});
@@ -339,8 +339,8 @@ class _DownloadsPageState extends State<DownloadsPage> {
               }
             },
             style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-              foregroundColor: Theme.of(context).colorScheme.onError,
+              backgroundColor: context.iconAppRed,
+              foregroundColor: Colors.white,
             ),
             child: const Text('Eliminar'),
           ),

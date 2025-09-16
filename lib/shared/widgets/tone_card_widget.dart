@@ -152,7 +152,7 @@ class _ToneCardWidgetState extends State<ToneCardWidget> {
                       },
                       icon: const Icon(Icons.delete_outline),
                       tooltip: 'Eliminar',
-                      color: Theme.of(context).colorScheme.error,
+                      color: context.iconAppRed,
                     )
                   else
                     Container(

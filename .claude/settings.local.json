@@ -23,7 +23,8 @@
       "Bash(r)",
       "Bash(npx:*)",
       "Bash(flutter test:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(flutter pub run build_runner build:*)"
     ],
     "deny": [],
     "ask": []

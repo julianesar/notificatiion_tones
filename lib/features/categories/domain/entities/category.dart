@@ -4,8 +4,13 @@ import 'package:flutter/foundation.dart';
 class Category {
   final String id;
   final String title;
+  final String? iconUrl;
 
-  const Category({required this.id, required this.title});
+  const Category({
+    required this.id,
+    required this.title,
+    this.iconUrl,
+  });
 
   @override
   bool operator ==(Object other) =>
@@ -16,5 +21,5 @@ class Category {
   int get hashCode => id.hashCode;
 
   @override
-  String toString() => 'Category(id: $id, title: $title)';
+  String toString() => 'Category(id: $id, title: $title, iconUrl: $iconUrl)';
 }

@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 class AppIconColors {
   const AppIconColors._();
 
-  static const Color favoriteActive = Color(0xFFE57373);
+  static const Color favoriteActive = Color(0xFFDC5151);
+
+  static const Color appRed = Color(0xFFDC5151);
 
   static Color primary(BuildContext context) =>
       Theme.of(context).colorScheme.primary;
@@ -24,4 +26,5 @@ extension AppIconColorsExtension on BuildContext {
   Color get iconDisabled => AppIconColors.disabled(this);
   Color get iconOnPrimary => AppIconColors.onPrimary(this);
   Color get iconFavoriteActive => AppIconColors.favoriteActive;
+  Color get iconAppRed => AppIconColors.appRed;
 }

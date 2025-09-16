@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/categories_provider.dart';
+import '../widgets/category_icon.dart';
 import '../../../tones/presentation/pages/tones_page.dart';
-import '../../../../core/theme/icon_colors.dart';
 
 class CategoriesPage extends StatefulWidget {
   const CategoriesPage({super.key});
@@ -96,6 +96,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
                 return _CategoryTile(
                   title: category.title,
                   categoryId: category.id,
+                  iconUrl: category.iconUrl,
                   onTap: () {
                     // Navega a la lista de tonos de la categoría
                     Navigator.push(
@@ -124,54 +125,16 @@ class _CategoriesPageState extends State<CategoriesPage> {
 class _CategoryTile extends StatelessWidget {
   final String title;
   final String categoryId;
+  final String? iconUrl;
   final VoidCallback onTap;
 
   const _CategoryTile({
     required this.title,
     required this.categoryId,
+    this.iconUrl,
     required this.onTap,
   });
 
-  IconData _getCategoryIcon() {
-    // Mapeo de IDs/títulos de categorías a iconos relevantes
-    final titleLower = title.toLowerCase();
-
-    if (titleLower.contains('notificacion') ||
-        titleLower.contains('notification')) {
-      return Icons.notifications;
-    } else if (titleLower.contains('alarm') ||
-        titleLower.contains('despertar')) {
-      return Icons.alarm;
-    } else if (titleLower.contains('llamada') ||
-        titleLower.contains('call') ||
-        titleLower.contains('ring')) {
-      return Icons.phone;
-    } else if (titleLower.contains('mensaje') ||
-        titleLower.contains('sms') ||
-        titleLower.contains('text')) {
-      return Icons.message;
-    } else if (titleLower.contains('social') || titleLower.contains('red')) {
-      return Icons.people;
-    } else if (titleLower.contains('clasic') ||
-        titleLower.contains('classic') ||
-        titleLower.contains('vintage')) {
-      return Icons.library_music;
-    } else if (titleLower.contains('email') ||
-        titleLower.contains('mail') ||
-        titleLower.contains('correo')) {
-      return Icons.email;
-    } else if (titleLower.contains('game') || titleLower.contains('juego')) {
-      return Icons.videogame_asset;
-    } else if (titleLower.contains('nature') ||
-        titleLower.contains('natural')) {
-      return Icons.nature;
-    } else if (titleLower.contains('electronic') ||
-        titleLower.contains('digital')) {
-      return Icons.computer;
-    } else {
-      return Icons.music_note; // Default fallback
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -179,10 +142,10 @@ class _CategoryTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withOpacity(0.05), width: 1),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.05), width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.12),
+            color: Colors.black.withValues(alpha: 0.12),
             blurRadius: 10,
             offset: const Offset(0, 6),
             spreadRadius: -3,
@@ -197,7 +160,11 @@ class _CategoryTile extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(_getCategoryIcon(), size: 40, color: context.iconPrimary),
+              CategoryIcon(
+                iconUrl: iconUrl,
+                title: title,
+                size: 40,
+              ),
               const SizedBox(height: 8),
               Text(
                 title,
