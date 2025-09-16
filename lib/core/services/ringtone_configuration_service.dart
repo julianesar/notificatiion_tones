@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/services.dart';
+import '../constants/method_channels.dart';
 
 enum RingtoneType {
   call,
@@ -16,12 +17,12 @@ abstract class RingtoneConfigurationService {
 }
 
 class RingtoneConfigurationServiceImpl implements RingtoneConfigurationService {
-  static const MethodChannel _channel = MethodChannel('com.example.notifications_sounds/ringtone_config');
+  static const MethodChannel _channel = MethodChannel(MethodChannels.ringtoneConfig);
 
   @override
   Future<bool> hasSystemSettingsPermission() async {
     if (!Platform.isAndroid) return true;
-    
+
     try {
       final bool hasPermission = await _channel.invokeMethod('hasSystemSettingsPermission');
       print('DEBUG: Native hasSystemSettingsPermission returned: $hasPermission');
@@ -35,7 +36,7 @@ class RingtoneConfigurationServiceImpl implements RingtoneConfigurationService {
   @override
   Future<bool> requestSystemSettingsPermission() async {
     if (!Platform.isAndroid) return true;
-    
+
     try {
       // This will open the system settings for the user to manually grant permission
       await _channel.invokeMethod('requestSystemSettingsPermission');
@@ -50,7 +51,7 @@ class RingtoneConfigurationServiceImpl implements RingtoneConfigurationService {
   @override
   Future<void> openSystemSettings() async {
     if (!Platform.isAndroid) return;
-    
+
     try {
       await _channel.invokeMethod('openSystemSettings');
     } catch (e) {

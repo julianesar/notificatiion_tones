@@ -22,12 +22,12 @@ class MainActivity : FlutterActivity() {
     private val CHANNEL = "com.sonidosdenotificaciones.notificationsounds/ringtone_config"
     private val SYSTEM_ALERT_WINDOW_REQUEST = 100
     private val CONTACTS_PERMISSION_REQUEST = 101
-    
+
     private var contactsPermissionResult: MethodChannel.Result? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        
+
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
                 "hasSystemSettingsPermission" -> {

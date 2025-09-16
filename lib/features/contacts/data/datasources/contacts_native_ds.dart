@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import '../models/contact_model.dart';
+import '../../../../core/constants/method_channels.dart';
 
 abstract class ContactsNativeDataSource {
   Future<bool> hasContactsPermission();
@@ -8,7 +9,7 @@ abstract class ContactsNativeDataSource {
 }
 
 class ContactsNativeDataSourceImpl implements ContactsNativeDataSource {
-  static const MethodChannel _channel = MethodChannel('com.example.notifications_sounds/ringtone_config');
+  static const MethodChannel _channel = MethodChannel(MethodChannels.ringtoneConfig);
 
   @override
   Future<bool> hasContactsPermission() async {
