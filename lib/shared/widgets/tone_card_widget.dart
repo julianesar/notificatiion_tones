@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../core/services/audio_service.dart';
 import '../../core/theme/icon_colors.dart';
+import 'play_stop_button.dart';
 
 class ToneCardWidget extends StatefulWidget {
   final String toneId;
@@ -45,15 +46,11 @@ class _ToneCardWidgetState extends State<ToneCardWidget> {
       key: ValueKey(widget.toneId),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.grey.withOpacity(0.05),
-          width: 1,
-        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.12),
+            color: Colors.black.withOpacity(0.4),
             blurRadius: 10,
             offset: const Offset(0, 6),
             spreadRadius: -3,
@@ -85,35 +82,13 @@ class _ToneCardWidgetState extends State<ToneCardWidget> {
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  GestureDetector(
-                    onTap: () => _toggleAudioPlay(context, audioService),
-                    child: Container(
-                      key: ValueKey('${widget.toneId}_button'),
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: context.iconPrimary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 200),
-                        child: isAudioLoading
-                            ? SizedBox(
-                                key: const ValueKey('loading'),
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: context.iconPrimary,
-                                ),
-                              )
-                            : Icon(
-                                isPlaying ? Icons.stop : Icons.play_arrow,
-                                key: ValueKey(isPlaying ? 'stop' : 'play'),
-                                color: context.iconPrimary,
-                              ),
-                      ),
-                    ),
+                  PlayStopButton(
+                    key: ValueKey('${widget.toneId}_button'),
+                    isPlaying: isPlaying,
+                    isLoading: isAudioLoading,
+                    onPressed: () => _toggleAudioPlay(context, audioService),
+                    size: 40,
+                    borderRadius: 8,
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -126,10 +101,10 @@ class _ToneCardWidgetState extends State<ToneCardWidget> {
                             widget.title,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 16,
-                              color: Colors.black87,
+                              color: Theme.of(context).textTheme.bodyLarge?.color,
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -137,7 +112,7 @@ class _ToneCardWidgetState extends State<ToneCardWidget> {
                             widget.subtitle,
                             style: TextStyle(
                               fontSize: 14,
-                              color: Colors.grey[600],
+                              color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
                             ),
                           ),
                         ],
@@ -150,9 +125,9 @@ class _ToneCardWidgetState extends State<ToneCardWidget> {
                         HapticFeedback.mediumImpact();
                         widget.onDelete!();
                       },
-                      icon: const Icon(Icons.delete_outline),
+                      icon: const Icon(Icons.delete),
                       tooltip: 'Eliminar',
-                      color: context.iconAppRed,
+                      color: context.iconTrashRed,
                     )
                   else
                     Container(

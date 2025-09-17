@@ -197,7 +197,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('Cancelar'),
           ),
-          TextButton(
+          FilledButton(
             onPressed: () async {
               Navigator.of(context).pop();
               final favoritesProvider = context.read<FavoritesProvider>();
@@ -239,8 +239,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 }
               }
             },
-            style: TextButton.styleFrom(
-              foregroundColor: context.iconAppRed,
+            style: FilledButton.styleFrom(
+              backgroundColor: context.iconAppRed,
+              foregroundColor: Colors.white,
             ),
             child: const Text('Eliminar todos'),
           ),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../config/theme_config.dart';
 
 class ThemeProvider with ChangeNotifier {
-  bool _isDarkMode = false;
+  bool _isDarkMode = true; // Default to dark theme to match the bell icon style
 
   bool get isDarkMode => _isDarkMode;
 

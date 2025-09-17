@@ -12,8 +12,8 @@ class HomeScreen extends StatelessWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
-        systemNavigationBarIconBrightness: Brightness.dark,
+        statusBarIconBrightness: Brightness.light,
+        systemNavigationBarIconBrightness: Brightness.light,
       ),
       child: Scaffold(
         body: SafeArea(
@@ -33,7 +33,7 @@ class HomeScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Sonidos de',
+                            'Notifly',
                             style: TextStyle(
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
@@ -42,12 +42,12 @@ class HomeScreen extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            'Notificaciones',
+                            'Sonidos de notificaciones',
                             style: TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.onSurface,
-                              height: 1.1,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w400,
+                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                              height: 1.2,
                             ),
                           ),
                         ],

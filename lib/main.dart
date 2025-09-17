@@ -31,13 +31,13 @@ void main() async {
   // Asegurarse de que los widgets estén inicializados
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Configure system UI overlay style globally
+  // Configure system UI overlay style globally for dark theme
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
-      statusBarBrightness: Brightness.light,
-      systemNavigationBarIconBrightness: Brightness.dark,
+      statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.dark,
+      systemNavigationBarIconBrightness: Brightness.light,
     ),
   );
 
@@ -113,12 +113,6 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           title: 'Sonidos de Notificaciones',
           theme: themeProvider.currentTheme,
-          darkTheme: themeProvider.currentTheme.copyWith(
-            brightness: Brightness.dark,
-          ),
-          themeMode: themeProvider.isDarkMode
-              ? ThemeMode.dark
-              : ThemeMode.light,
           navigatorKey: NavigationService.navigatorKey,
           home: MainScreen(key: MainScreen.mainScreenKey),
           debugShowCheckedModeBanner: false,

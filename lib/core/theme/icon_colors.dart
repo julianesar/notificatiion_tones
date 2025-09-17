@@ -7,6 +7,8 @@ class AppIconColors {
 
   static const Color appRed = Color(0xFFDC5151);
 
+  static const Color trashRed = Color(0xFFEF5350);
+
   static Color iconBlack(BuildContext context) =>
       Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7);
 
@@ -30,5 +32,6 @@ extension AppIconColorsExtension on BuildContext {
   Color get iconOnPrimary => AppIconColors.onPrimary(this);
   Color get iconFavoriteActive => AppIconColors.favoriteActive;
   Color get iconAppRed => AppIconColors.appRed;
+  Color get iconTrashRed => AppIconColors.trashRed;
   Color get iconBlack => AppIconColors.iconBlack(this);
 }

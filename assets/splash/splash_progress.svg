@@ -1,0 +1,22 @@
+<svg width="300" height="8" viewBox="0 0 300 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#6366F1;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#8B5CF6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#A855F7;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Progress bar background -->
+  <rect x="0" y="0" width="300" height="8" rx="4" fill="#E5E7EB"/>
+
+  <!-- Progress bar fill (animated appearance) -->
+  <rect x="0" y="0" width="0" height="8" rx="4" fill="url(#progressGradient)">
+    <animate attributeName="width" values="0;75;150;225;300" dur="2s" repeatCount="indefinite"/>
+  </rect>
+
+  <!-- Shimmer effect -->
+  <rect x="0" y="0" width="60" height="8" rx="4" fill="url(#progressGradient)" opacity="0.3">
+    <animateTransform attributeName="transform" type="translate" values="-60 0;360 0" dur="1.5s" repeatCount="indefinite"/>
+  </rect>
+</svg>

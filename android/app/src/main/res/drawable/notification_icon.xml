@@ -1,0 +1,11 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+
+    <!-- White notification bell icon -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M60,40 C52.6,40 46.7,45.9 46.7,53.3 L46.7,66.7 L40,73.3 L40,76.7 L80,76.7 L80,73.3 L73.3,66.7 L73.3,53.3 C73.3,45.9 67.4,40 60,40 Z M53.3,80 C53.3,83.7 56.3,86.7 60,86.7 C63.7,86.7 66.7,83.7 66.7,80 L53.3,80 Z M60,36.7 C61,36.7 61.7,36 61.7,35 L61.7,31.7 C61.7,30.7 61,30 60,30 C59,30 58.3,30.7 58.3,31.7 L58.3,35 C58.3,36 59,36.7 60,36.7 Z" />
+</vector>

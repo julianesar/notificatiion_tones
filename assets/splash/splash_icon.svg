@@ -1,0 +1,29 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="512" cy="512" r="512" fill="#6366F1"/>
+
+  <!-- Musical note -->
+  <g transform="translate(256, 256)">
+    <!-- Note head -->
+    <ellipse cx="120" cy="420" rx="60" ry="45" fill="white" transform="rotate(-20 120 420)"/>
+
+    <!-- Note stem -->
+    <rect x="175" y="160" width="12" height="270" rx="6" fill="white"/>
+
+    <!-- Note flag -->
+    <path d="M187 160 Q240 140 280 180 Q260 200 220 210 Q200 180 187 180 Z" fill="white"/>
+
+    <!-- Second note head -->
+    <ellipse cx="280" cy="350" rx="55" ry="40" fill="white" transform="rotate(-15 280 350)"/>
+
+    <!-- Second note stem -->
+    <rect x="330" y="120" width="10" height="240" rx="5" fill="white"/>
+
+    <!-- Connecting beam -->
+    <path d="M187 180 L340 140 L340 160 L187 200 Z" fill="white"/>
+
+    <!-- Musical accent swirls -->
+    <path d="M380 200 Q400 180 420 200 Q400 220 380 200" fill="white" opacity="0.8"/>
+    <path d="M400 160 Q420 140 440 160 Q420 180 400 160" fill="white" opacity="0.6"/>
+  </g>
+</svg>

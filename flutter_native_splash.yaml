@@ -1,0 +1,27 @@
+flutter_native_splash:
+  # Color de fondo del splash screen
+  color: "#FFFFFF"
+  color_dark: "#1F1F1F"
+
+  # Imagen principal del splash (icono de notificación musical)
+  image: assets/icons/app_icon.png
+  image_dark: assets/icons/app_icon.png
+  branding_mode: bottom
+  branding_bottom_padding: 80
+
+  # Configuración específica para Android 12+
+  android_12:
+    # Imagen del icono (se recortará en círculo)
+    image: assets/icons/app_icon.png
+    icon_background_color: "#FFFFFF"
+    color: "#FFFFFF"
+
+    # Configuración para modo oscuro en Android 12+
+    image_dark: assets/icons/app_icon.png
+    icon_background_color_dark: "#1F1F1F"
+    color_dark: "#1F1F1F"
+
+  # Habilitar para todas las plataformas
+  android: true
+  ios: true
+  web: true

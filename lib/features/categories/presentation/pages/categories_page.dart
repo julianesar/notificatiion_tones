@@ -67,7 +67,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
             children: [
               // Título "Categorías" alineado a la izquierda
               Padding(
-                padding: const EdgeInsets.only(top: 16, right: 24, left: 24, bottom: 16),
+                padding: const EdgeInsets.only(top: 32, right: 24, left: 24, bottom: 16),
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
@@ -121,7 +121,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
   }
 }
 
-/// Tarjeta estilo "card + inkWell" (patrón de code .txt)
+/// Tarjeta estilo "card + inkWell" (patrón de code .txt) - shadow dark
 class _CategoryTile extends StatelessWidget {
   final String title;
   final String categoryId;
@@ -140,12 +140,11 @@ class _CategoryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.05), width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.12),
+            color: Colors.black.withOpacity(0.4),
             blurRadius: 10,
             offset: const Offset(0, 6),
             spreadRadius: -3,
@@ -169,9 +168,10 @@ class _CategoryTile extends StatelessWidget {
               Text(
                 title,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
                 ),
                 maxLines: 2,
               ),

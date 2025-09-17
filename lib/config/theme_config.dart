@@ -2,20 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class ThemeConfig {
+  // Bell Orange Colors - Based on app icon
+  static const Color bellOrange = Color(0xFFFF8A00);
+  static const Color bellOrangeLight = Color(0xFFFFB347);
+  static const Color bellOrangeDark = Color(0xFFE67300);
+  static const Color bellOrangeAccent = Color(0xFFFF9500);
+
   // Light Theme Colors
-  static const Color primaryLight = Color(0xFF6366F1);
-  static const Color primaryVariantLight = Color(0xFF4F46E5);
-  static const Color secondaryLight = Color(0xFF10B981);
+  static const Color primaryLight = bellOrange;
+  static const Color primaryVariantLight = bellOrangeDark;
+  static const Color secondaryLight = bellOrangeAccent;
   static const Color backgroundLight = Color(0xFFF8FAFC);
   static const Color surfaceLight = Color(0xFFFFFFFF);
   static const Color errorLight = Color(0xFFEF4444);
 
-  // Dark Theme Colors
-  static const Color primaryDark = Color(0xFF818CF8);
-  static const Color primaryVariantDark = Color(0xFF6366F1);
-  static const Color secondaryDark = Color(0xFF34D399);
-  static const Color backgroundDark = Color(0xFF0F172A);
-  static const Color surfaceDark = Color(0xFF1E293B);
+  // Dark Theme Colors (Default dark theme with orange accents)
+  static const Color primaryDark = bellOrangeLight;
+  static const Color primaryVariantDark = bellOrange;
+  static const Color secondaryDark = bellOrangeAccent;
+  static const Color backgroundDark = Color(0xFF1E1E1E);
+  static const Color surfaceDark = Color(0xFF1A1A1A);
+  static const Color cardDark = Color(0xFF2A2A2A);
   static const Color errorDark = Color(0xFFF87171);
 
   // Text Colors
@@ -25,9 +32,9 @@ class ThemeConfig {
   static const Color textSecondaryDark = Color(0xFF9CA3AF);
 
   // Audio Player Colors
-  static const Color audioPlayerPrimary = Color(0xFF8B5CF6);
-  static const Color audioPlayerSecondary = Color(0xFFA78BFA);
-  static const Color waveformActive = Color(0xFF6366F1);
+  static const Color audioPlayerPrimary = bellOrange;
+  static const Color audioPlayerSecondary = bellOrangeLight;
+  static const Color waveformActive = bellOrange;
   static const Color waveformInactive = Color(0xFFE5E7EB);
 
   static ThemeData get lightTheme {
@@ -106,12 +113,12 @@ class ThemeConfig {
         elevation: 0,
         centerTitle: true,
         backgroundColor: Colors.transparent,
-        foregroundColor: Colors.black,
-        iconTheme: IconThemeData(color: Colors.black),
+        foregroundColor: textPrimaryDark,
+        iconTheme: IconThemeData(color: textPrimaryDark),
         systemOverlayStyle: SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
-          statusBarIconBrightness: Brightness.dark,
-          statusBarBrightness: Brightness.light,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.zero,
@@ -130,7 +137,7 @@ class ThemeConfig {
       ),
       cardTheme: CardThemeData(
         elevation: 0,
-        color: surfaceDark,
+        color: cardDark,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(color: Colors.grey.shade800, width: 1),

@@ -14,6 +14,7 @@ import '../../../../core/services/filename_service.dart';
 import '../../../../shared/widgets/system_settings_permission_dialog.dart';
 import '../../../../core/di/service_locator.dart';
 import '../../../../core/theme/icon_colors.dart';
+import '../../../../shared/widgets/play_stop_button.dart';
 import '../../../downloads/presentation/providers/downloads_provider.dart';
 import '../../../downloads/domain/repositories/download_repository.dart';
 import '../../../contacts/presentation/widgets/contact_picker_dialog.dart';
@@ -904,11 +905,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                       width: size,
                       height: size,
                       decoration: BoxDecoration(
-                        color: Color.lerp(
-                          colorScheme.primary,
-                          Colors.white,
-                          0.8,
-                        ),
+                        color: context.iconPrimary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: Colors.grey.withOpacity(0.05),
@@ -925,7 +922,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                       ),
                       child: Center(
                         child: Icon(
-                          Icons.music_note,
+                          Icons.notifications_active,
                           size: size * 0.4,
                           color: context.iconPrimary,
                         ),
@@ -1066,40 +1063,13 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                           });
                         }
 
-                        return Container(
-                          width: 64,
-                          height: 64,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: context.iconPrimary,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.15),
-                                blurRadius: 8,
-                                spreadRadius: 0,
-                                offset: Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: IconButton(
-                            onPressed: isLoading ? null : _togglePlayPause,
-                            icon: isLoading
-                                ? SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2.5,
-                                      color: colorScheme.onPrimary,
-                                    ),
-                                  )
-                                : Icon(
-                                    isCurrentTonePlaying
-                                        ? Icons.pause
-                                        : Icons.play_arrow,
-                                    size: 28,
-                                    color: colorScheme.onPrimary,
-                                  ),
-                          ),
+                        return PlayStopButton(
+                          isPlaying: isCurrentTonePlaying,
+                          isLoading: isLoading,
+                          onPressed: isLoading ? null : _togglePlayPause,
+                          size: 64,
+                          iconSize: 28,
+                          borderRadius: 16, // Cuadrado con bordes redondeados
                         );
                       },
                     ),
@@ -1118,7 +1088,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                   ],
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
 
                 // Action Buttons Row
                 Row(
@@ -1175,7 +1145,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                   ],
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
 
                 // Set as Ringtone Button
                 Container(
@@ -1198,7 +1168,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                       'Establecer como tono',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        color: colorScheme.onPrimary,
                       ),
                     ),
                   ),

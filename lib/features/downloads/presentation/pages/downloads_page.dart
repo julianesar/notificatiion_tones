@@ -163,7 +163,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
                         8,
                       ),
                       child: Text(
-                        'Completadas (${completedDownloads.length})',
+                        'Historial (${completedDownloads.length})',
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(
                               fontWeight: FontWeight.bold,
@@ -298,7 +298,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Eliminar del Reciente'),
+        title: const Text('Eliminar de Recientes'),
         content: Text(
           '¿Estás seguro de que quieres eliminar "${_getDisplayTitle(download)}"?\n\n'
           'Esta acción no se puede deshacer.',
