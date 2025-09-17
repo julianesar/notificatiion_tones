@@ -5,6 +5,8 @@ import '../../../features/downloads/presentation/providers/downloads_provider.da
 import '../../../features/downloads/domain/entities/download_result.dart';
 import '../../../features/tones/domain/entities/tone.dart';
 import '../../shared/widgets/permission_explanation_dialog.dart';
+import '../../shared/widgets/custom_snackbar.dart';
+import '../../config/theme_config.dart';
 import 'permissions_service.dart';
 import '../navigation/navigation_service.dart';
 
@@ -35,14 +37,13 @@ class DownloadFlowService {
     if (downloadsProvider.isDownloaded(toneId)) {
       print('DEBUG: Tono ya descargado, mostrando mensaje');
       scaffoldMessenger.showSnackBar(
-        SnackBar(
-          content: Text('$title ya está descargado'),
-          backgroundColor: Colors.blue[800],
-          behavior: SnackBarBehavior.floating,
+        CustomSnackBar.info(
+          context,
+          message: '$title ya está descargado',
           duration: const Duration(seconds: 6),
           action: SnackBarAction(
             label: 'Ver',
-            textColor: Colors.white,
+            textColor: Colors.black,
             onPressed: () {
               print('DownloadFlow: Botón "Ver" presionado, intentando navegar...');
               NavigationService.instance.navigateToDownloads();
@@ -117,10 +118,9 @@ class DownloadFlowService {
       print('DEBUG: Error inesperado: $e');
       HapticFeedback.heavyImpact();
       scaffoldMessenger.showSnackBar(
-        SnackBar(
-          content: Text('Error inesperado: $e'),
-          backgroundColor: theme.colorScheme.error,
-          behavior: SnackBarBehavior.floating,
+        CustomSnackBar.error(
+          context,
+          message: 'Error inesperado: $e',
           duration: const Duration(seconds: 4),
         ),
       );
@@ -143,10 +143,10 @@ class DownloadFlowService {
     
     // Mostrar mensaje de "Preparando descarga"
     scaffoldMessenger.showSnackBar(
-      SnackBar(
-        content: Text('Preparando descarga de $title'),
+      CustomSnackBar.download(
+        context,
+        message: 'Preparando descarga de $title',
         duration: const Duration(seconds: 1),
-        behavior: SnackBarBehavior.floating,
       ),
     );
     
@@ -172,14 +172,13 @@ class DownloadFlowService {
         print('DEBUG: Descarga exitosa, mostrando confirmación');
         HapticFeedback.lightImpact();
         scaffoldMessenger.showSnackBar(
-          SnackBar(
-            content: Text('$title descargado exitosamente'),
-            backgroundColor: Colors.green[800],
-            behavior: SnackBarBehavior.floating,
+          CustomSnackBar.success(
+            context,
+            message: '$title descargado exitosamente',
             duration: const Duration(seconds: 8),
             action: SnackBarAction(
               label: 'Ver',
-              textColor: Colors.white,
+              textColor: Colors.black,
               onPressed: () {
                 print('DownloadFlow: Segundo botón "Ver" presionado, intentando navegar...');
                 NavigationService.instance.navigateToDownloads();
@@ -196,14 +195,13 @@ class DownloadFlowService {
           // Para archivos ya descargados o en progreso, usar feedback ligero
           HapticFeedback.lightImpact();
           scaffoldMessenger.showSnackBar(
-            SnackBar(
-              content: Text(result.message ?? 'El archivo ya existe'),
-              backgroundColor: Colors.blue[800],
-              behavior: SnackBarBehavior.floating,
+            CustomSnackBar.info(
+              context,
+              message: result.message ?? 'El archivo ya existe',
               duration: const Duration(seconds: 4),
               action: SnackBarAction(
                 label: 'Ver',
-                textColor: Colors.white,
+                textColor: Colors.black,
                 onPressed: () {
                   NavigationService.instance.navigateToDownloads();
                 },
@@ -232,10 +230,9 @@ class DownloadFlowService {
         }
 
         scaffoldMessenger.showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
-            backgroundColor: theme.colorScheme.error,
-            behavior: SnackBarBehavior.floating,
+          CustomSnackBar.error(
+            context,
+            message: errorMessage,
             duration: const Duration(seconds: 4),
           ),
         );
@@ -245,10 +242,9 @@ class DownloadFlowService {
       
       HapticFeedback.heavyImpact();
       scaffoldMessenger.showSnackBar(
-        SnackBar(
-          content: Text('Error durante la descarga: $e'),
-          backgroundColor: theme.colorScheme.error,
-          behavior: SnackBarBehavior.floating,
+        CustomSnackBar.error(
+          context,
+          message: 'Error durante la descarga: $e',
           duration: const Duration(seconds: 4),
         ),
       );
@@ -328,24 +324,16 @@ class DownloadFlowService {
     
     scaffoldMessenger.showSnackBar(
       SnackBar(
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Permiso requerido',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 4),
-            Text(message),
-          ],
-        ),
-        backgroundColor: Colors.orange[800],
+        content: Text('Permiso requerido: $message'),
+        backgroundColor: ThemeConfig.primary,
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 6),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
         action: SnackBarAction(
           label: 'Configuración',
-          textColor: Colors.white,
+          textColor: Colors.black,
           onPressed: () {
             // TODO: Abrir configuración de la app
           },
@@ -362,30 +350,16 @@ class DownloadFlowService {
     
     if (!context.mounted) return;
     
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Permiso requerido',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 4),
-            Text(message),
-          ],
-        ),
-        backgroundColor: Colors.orange[800],
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 6),
-        action: SnackBarAction(
-          label: 'Configuración',
-          textColor: Colors.white,
-          onPressed: () {
-            // TODO: Abrir configuración de la app
-          },
-        ),
+    CustomSnackBar.show(
+      context,
+      message: 'Permiso requerido: $message',
+      duration: const Duration(seconds: 6),
+      action: SnackBarAction(
+        label: 'Configuración',
+        textColor: Colors.black,
+        onPressed: () {
+          // TODO: Abrir configuración de la app
+        },
       ),
     );
   }
@@ -492,10 +466,9 @@ class DownloadFlowService {
       print('DEBUG: Error inesperado: $e');
       HapticFeedback.heavyImpact();
       scaffoldMessenger.showSnackBar(
-        SnackBar(
-          content: Text('Error inesperado: $e'),
-          backgroundColor: theme.colorScheme.error,
-          behavior: SnackBarBehavior.floating,
+        CustomSnackBar.error(
+          context,
+          message: 'Error inesperado: $e',
           duration: const Duration(seconds: 4),
         ),
       );
@@ -519,10 +492,10 @@ class DownloadFlowService {
     
     // Mostrar mensaje de "Preparando descarga"
     scaffoldMessenger.showSnackBar(
-      SnackBar(
-        content: Text('Preparando descarga de $title'),
+      CustomSnackBar.download(
+        context,
+        message: 'Preparando descarga de $title',
         duration: const Duration(seconds: 1),
-        behavior: SnackBarBehavior.floating,
       ),
     );
     
@@ -589,10 +562,9 @@ class DownloadFlowService {
         }
 
         scaffoldMessenger.showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
-            backgroundColor: theme.colorScheme.error,
-            behavior: SnackBarBehavior.floating,
+          CustomSnackBar.error(
+            context,
+            message: errorMessage,
             duration: const Duration(seconds: 4),
           ),
         );
@@ -602,10 +574,9 @@ class DownloadFlowService {
       
       HapticFeedback.heavyImpact();
       scaffoldMessenger.showSnackBar(
-        SnackBar(
-          content: Text('Error durante la descarga: $e'),
-          backgroundColor: theme.colorScheme.error,
-          behavior: SnackBarBehavior.floating,
+        CustomSnackBar.error(
+          context,
+          message: 'Error durante la descarga: $e',
           duration: const Duration(seconds: 4),
         ),
       );

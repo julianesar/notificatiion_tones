@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/services/share_service.dart';
 import '../../features/tones/domain/entities/tone.dart';
 import '../../core/theme/icon_colors.dart';
+import 'custom_snackbar.dart';
 
 /// Reusable widget for common sharing options
 /// Provides consistent sharing UI across the app
@@ -42,22 +43,17 @@ class ShareOptionsWidget extends StatelessWidget {
                 onShareCompleted?.call();
                 
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Compartiendo ${collectionName ?? 'colección'} de ${tones!.length} tonos'),
-                      behavior: SnackBarBehavior.floating,
-                      duration: const Duration(seconds: 2),
-                    ),
+                  CustomSnackBar.showInfo(
+                    context,
+                    message: 'Compartiendo ${collectionName ?? 'colección'} de ${tones!.length} tonos',
+                    duration: const Duration(seconds: 2),
                   );
                 }
               } catch (e) {
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Error al compartir: ${e.toString()}'),
-                      backgroundColor: Theme.of(context).colorScheme.error,
-                      behavior: SnackBarBehavior.floating,
-                    ),
+                  CustomSnackBar.showError(
+                    context,
+                    message: 'Error al compartir: ${e.toString()}',
                   );
                 }
               }
@@ -80,22 +76,17 @@ class ShareOptionsWidget extends StatelessWidget {
                 onShareCompleted?.call();
                 
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('¡Gracias por compartir nuestra app!'),
-                      behavior: SnackBarBehavior.floating,
-                      duration: Duration(seconds: 2),
-                    ),
+                  CustomSnackBar.showSuccess(
+                    context,
+                    message: '¡Gracias por compartir nuestra app!',
+                    duration: const Duration(seconds: 2),
                   );
                 }
               } catch (e) {
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Error al compartir: ${e.toString()}'),
-                      backgroundColor: Theme.of(context).colorScheme.error,
-                      behavior: SnackBarBehavior.floating,
-                    ),
+                  CustomSnackBar.showError(
+                    context,
+                    message: 'Error al compartir: ${e.toString()}',
                   );
                 }
               }

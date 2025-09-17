@@ -6,6 +6,7 @@ import '../features/tones/presentation/pages/tone_player_page.dart';
 import '../features/tones/domain/entities/tone.dart';
 import '../shared/widgets/tone_card_widget.dart';
 import '../core/theme/icon_colors.dart';
+import '../shared/widgets/custom_snackbar.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -205,36 +206,18 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               try {
                 await favoritesProvider.clearAllFavorites();
                 if (context.mounted) {
-                  final messenger = ScaffoldMessenger.of(context);
-                  messenger.showSnackBar(
-                    const SnackBar(
-                      content: Text('Todos los favoritos eliminados'),
-                      behavior: SnackBarBehavior.floating,
-                      duration: Duration(seconds: 2),
-                    ),
+                  CustomSnackBar.showSuccess(
+                    context,
+                    message: 'Todos los favoritos eliminados',
+                    duration: const Duration(seconds: 2),
                   );
                 }
               } catch (e) {
                 if (context.mounted) {
-                  final messenger = ScaffoldMessenger.of(context);
-                  messenger.showSnackBar(
-                    SnackBar(
-                      content: Row(
-                        children: [
-                          const Icon(Icons.error_outline, color: Colors.white),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text('Error al eliminar favoritos: $e'),
-                          ),
-                        ],
-                      ),
-                      backgroundColor: context.iconAppRed,
-                      duration: const Duration(seconds: 3),
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
+                  CustomSnackBar.showError(
+                    context,
+                    message: 'Error al eliminar favoritos: $e',
+                    duration: const Duration(seconds: 3),
                   );
                 }
               }

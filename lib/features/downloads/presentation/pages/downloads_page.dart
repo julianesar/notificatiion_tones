@@ -10,6 +10,7 @@ import '../../../tones/presentation/pages/tone_player_page.dart';
 import '../../../../core/services/filename_service.dart';
 import '../../../../core/theme/icon_colors.dart';
 import '../../../../core/di/service_locator.dart';
+import '../../../../shared/widgets/custom_snackbar.dart';
 
 class DownloadsPage extends StatefulWidget {
   const DownloadsPage({super.key});
@@ -322,19 +323,12 @@ class _DownloadsPageState extends State<DownloadsPage> {
                   HapticFeedback.heavyImpact();
                 }
 
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      success
-                          ? 'Tono eliminado de recientes exitosamente'
-                          : 'Error al eliminar el tono de recientes',
-                    ),
-                    backgroundColor: success
-                        ? Theme.of(context).colorScheme.primaryContainer
-                        : Theme.of(context).colorScheme.error,
-                    behavior: SnackBarBehavior.floating,
-                    duration: const Duration(seconds: 2),
-                  ),
+                CustomSnackBar.show(
+                  context,
+                  message: success
+                      ? 'Tono eliminado de recientes exitosamente'
+                      : 'Error al eliminar el tono de recientes',
+                  duration: const Duration(seconds: 2),
                 );
               }
             },

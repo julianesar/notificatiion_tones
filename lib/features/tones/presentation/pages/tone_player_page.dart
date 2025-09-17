@@ -18,6 +18,7 @@ import '../../../../shared/widgets/play_stop_button.dart';
 import '../../../downloads/presentation/providers/downloads_provider.dart';
 import '../../../downloads/domain/repositories/download_repository.dart';
 import '../../../contacts/presentation/widgets/contact_picker_dialog.dart';
+import '../../../../shared/widgets/custom_snackbar.dart';
 import '../../../favorites/presentation/providers/favorites_provider.dart';
 
 class TonePlayerPage extends StatefulWidget {
@@ -176,11 +177,9 @@ class _TonePlayerPageState extends State<TonePlayerPage>
 
   void _showErrorSnackBar(String message) {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
+      CustomSnackBar.showError(
+        context,
+        message: message,
       );
     }
   }
@@ -198,17 +197,10 @@ class _TonePlayerPageState extends State<TonePlayerPage>
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              isNowFavorite ? 'Agregado a favoritos' : 'Eliminado de favoritos',
-            ),
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 2),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
+        CustomSnackBar.show(
+          context,
+          message: isNowFavorite ? 'Agregado a favoritos' : 'Eliminado de favoritos',
+          duration: const Duration(seconds: 2),
         );
       }
     } catch (e) {
@@ -774,10 +766,11 @@ class _TonePlayerPageState extends State<TonePlayerPage>
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
+        final colorScheme = Theme.of(context).colorScheme;
         return AlertDialog(
           title: Row(
             children: [
-              Icon(Icons.check_circle, color: Colors.green, size: 28),
+              Icon(Icons.check_circle, color: colorScheme.primary, size: 28),
               SizedBox(width: 12),
               Expanded(child: Text('¡Configuración Exitosa!')),
             ],
@@ -788,21 +781,21 @@ class _TonePlayerPageState extends State<TonePlayerPage>
             children: [
               Text(
                 'El tono "${_currentTone.title}" se ha configurado correctamente como $actionName.',
-                style: TextStyle(fontSize: 16),
+                style: TextStyle(fontSize: 16, color: Colors.white),
               ),
               SizedBox(height: 16),
               Container(
                 padding: EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.green[50],
+                  color: colorScheme.primaryContainer.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.green[200]!),
+                  border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [
                     Icon(
                       Icons.info_outline,
-                      color: Colors.green[700],
+                      color: colorScheme.primary,
                       size: 20,
                     ),
                     SizedBox(width: 8),
@@ -810,7 +803,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                       child: Text(
                         'Los cambios se aplicaron inmediatamente. Ya puedes usar tu nuevo tono personalizado.',
                         style: TextStyle(
-                          color: Colors.green[700],
+                          color: Colors.white,
                           fontSize: 14,
                         ),
                       ),
@@ -828,7 +821,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
-                  color: Colors.green[700],
+                  color: colorScheme.primary,
                 ),
               ),
             ),
@@ -1183,12 +1176,9 @@ class _TonePlayerPageState extends State<TonePlayerPage>
   }
 
   void _showSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
+    CustomSnackBar.show(
+      context,
+      message: message,
     );
   }
 

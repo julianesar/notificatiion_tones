@@ -2,39 +2,46 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class ThemeConfig {
-  // Bell Orange Colors - Based on app icon
-  static const Color bellOrange = Color(0xFFFF8A00);
-  static const Color bellOrangeLight = Color(0xFFFFB347);
-  static const Color bellOrangeDark = Color(0xFFE67300);
-  static const Color bellOrangeAccent = Color(0xFFFF9500);
+  // New Color Scheme
+  static const Color primary = Color(0xFFFF7043); // Primary color for buttons and accents
+  static const Color backgroundMain = Color(0xFF263238); // Background color for screens
+  static const Color cardSurface = Color(0xFF37474F); // Cards and menus color
+  static const Color importantText = Color(0xFFECEFF1); // Important texts color
+
+  // Complementary colors
+  static const Color primaryLight = Color(0xFFFF8A65);
+  static const Color primaryDark = Color(0xFFE64A19);
+  static const Color secondary = Color(0xFF546E7A);
+  static const Color error = Color(0xFFEF4444);
+  static const Color snackBar = Color(0xFF171717);
 
   // Light Theme Colors
-  static const Color primaryLight = bellOrange;
-  static const Color primaryVariantLight = bellOrangeDark;
-  static const Color secondaryLight = bellOrangeAccent;
+  static const Color primaryLight_theme = primary;
+  static const Color primaryVariantLight = primaryDark;
+  static const Color secondaryLight = secondary;
   static const Color backgroundLight = Color(0xFFF8FAFC);
   static const Color surfaceLight = Color(0xFFFFFFFF);
-  static const Color errorLight = Color(0xFFEF4444);
+  static const Color errorLight = error;
 
-  // Dark Theme Colors (Default dark theme with orange accents)
-  static const Color primaryDark = bellOrangeLight;
-  static const Color primaryVariantDark = bellOrange;
-  static const Color secondaryDark = bellOrangeAccent;
-  static const Color backgroundDark = Color(0xFF1E1E1E);
-  static const Color surfaceDark = Color(0xFF1A1A1A);
-  static const Color cardDark = Color(0xFF2A2A2A);
+  // Dark Theme Colors
+  static const Color primaryDark_theme = primary;
+  static const Color primaryVariantDark = primaryLight;
+  static const Color secondaryDark = secondary;
+  static const Color backgroundDark = backgroundMain;
+  static const Color surfaceDark = cardSurface;
+  static const Color cardDark = cardSurface;
   static const Color errorDark = Color(0xFFF87171);
 
   // Text Colors
   static const Color textPrimaryLight = Color(0xFF1F2937);
   static const Color textSecondaryLight = Color(0xFF6B7280);
-  static const Color textPrimaryDark = Color(0xFFF9FAFB);
-  static const Color textSecondaryDark = Color(0xFF9CA3AF);
+  static const Color textPrimaryDark = importantText;
+  static const Color textSecondaryDark = Color(0xFFB0BEC5);
 
   // Audio Player Colors
-  static const Color audioPlayerPrimary = bellOrange;
-  static const Color audioPlayerSecondary = bellOrangeLight;
-  static const Color waveformActive = bellOrange;
+  static const Color audioPlayerPrimary = primary;
+  static const Color audioPlayerSecondary = primaryLight;
+  static const Color waveformActive = primary;
   static const Color waveformInactive = Color(0xFFE5E7EB);
 
   static ThemeData get lightTheme {
@@ -42,7 +49,7 @@ class ThemeConfig {
       useMaterial3: true,
       brightness: Brightness.light,
       colorScheme: const ColorScheme.light(
-        primary: primaryLight,
+        primary: primaryLight_theme,
         secondary: secondaryLight,
         surface: backgroundLight,
         error: errorLight,
@@ -68,7 +75,7 @@ class ThemeConfig {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: primaryLight,
+          backgroundColor: primaryLight_theme,
           foregroundColor: Colors.white,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -87,7 +94,7 @@ class ThemeConfig {
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: surfaceLight,
-        selectedItemColor: primaryLight,
+        selectedItemColor: primaryLight_theme,
         unselectedItemColor: textSecondaryLight,
         type: BottomNavigationBarType.fixed,
         elevation: 8,
@@ -100,7 +107,7 @@ class ThemeConfig {
       useMaterial3: true,
       brightness: Brightness.dark,
       colorScheme: const ColorScheme.dark(
-        primary: primaryDark,
+        primary: primaryDark_theme,
         secondary: secondaryDark,
         surface: backgroundDark,
         error: errorDark,
@@ -126,7 +133,7 @@ class ThemeConfig {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: primaryDark,
+          backgroundColor: primaryDark_theme,
           foregroundColor: Colors.black,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -145,7 +152,7 @@ class ThemeConfig {
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: surfaceDark,
-        selectedItemColor: primaryDark,
+        selectedItemColor: primaryDark_theme,
         unselectedItemColor: textSecondaryDark,
         type: BottomNavigationBarType.fixed,
         elevation: 8,

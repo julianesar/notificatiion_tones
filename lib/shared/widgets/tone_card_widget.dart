@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../core/services/audio_service.dart';
 import '../../core/theme/icon_colors.dart';
 import 'play_stop_button.dart';
+import 'custom_snackbar.dart';
 
 class ToneCardWidget extends StatefulWidget {
   final String toneId;
@@ -179,31 +180,18 @@ class _ToneCardWidgetState extends State<ToneCardWidget> {
 
 
   void _showSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
+    CustomSnackBar.show(
+      context,
+      message: message,
     );
   }
 
 
   void _showErrorSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.error_outline, color: Colors.white),
-            const SizedBox(width: 8),
-            Expanded(child: Text(message)),
-          ],
-        ),
-        backgroundColor: Theme.of(context).colorScheme.error,
-        duration: const Duration(seconds: 3),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
+    CustomSnackBar.showError(
+      context,
+      message: message,
+      duration: const Duration(seconds: 3),
     );
   }
 
