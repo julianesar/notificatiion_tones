@@ -7,6 +7,7 @@ class Tone {
   final String url;
   final bool requiresAttribution;
   final String? attributionText;
+  final double? duration;
 
   const Tone({
     required this.id,
@@ -14,6 +15,7 @@ class Tone {
     required this.url,
     required this.requiresAttribution,
     this.attributionText,
+    this.duration,
   });
 
   @override
@@ -26,5 +28,5 @@ class Tone {
 
   @override
   String toString() =>
-      'Tone(id: $id, title: $title, url: $url, requiresAttribution: $requiresAttribution, attributionText: $attributionText)';
+      'Tone(id: $id, title: $title, url: $url, requiresAttribution: $requiresAttribution, attributionText: $attributionText, duration: $duration)';
 }

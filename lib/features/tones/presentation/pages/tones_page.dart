@@ -129,6 +129,7 @@ class _TonesPageState extends State<TonesPage> {
                   title: tone.title,
                   url: tone.url,
                   subtitle: widget.title,
+                  duration: tone.duration,
                   requiresAttribution: tone.requiresAttribution,
                   attributionText: tone.attributionText,
                   onTap: () => _openPlayer(context, tone),

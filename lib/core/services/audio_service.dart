@@ -246,8 +246,10 @@ class AudioService extends ChangeNotifier {
 
   /// Format duration to MM:SS format
   String formatDuration(Duration duration) {
-    final minutes = duration.inMinutes;
-    final seconds = duration.inSeconds % 60;
+    // Ensure minimum duration of 1 second to avoid showing 00:00
+    final adjustedDuration = duration.inSeconds < 1 ? const Duration(seconds: 1) : duration;
+    final minutes = adjustedDuration.inMinutes;
+    final seconds = adjustedDuration.inSeconds % 60;
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 }

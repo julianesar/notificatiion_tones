@@ -1,3 +1,4 @@
+// src/index.js
 function json(data, { ttl = 300, etag } = {}) {
   const headers = {
     "content-type": "application/json; charset=utf-8",
@@ -17,13 +18,11 @@ function corsHeaders(origin) {
   };
 }
 
-// Usa el propio Request (URL completa) como clave de caché
 async function withCache(cacheRequest, fetcher) {
   const cache = caches.default;
   let res = await cache.match(cacheRequest);
   if (res) return res;
   res = await fetcher();
-  // la respuesta ya viene con cache-control desde json()
   await cache.put(cacheRequest, res.clone());
   return res;
 }
@@ -43,40 +42,77 @@ export default {
       return new Response("ok", { headers: corsHeaders(origin) });
     }
 
-    // Permite saltar cache con ?nocache=1
     const bypassCache = url.searchParams.has("nocache");
 
-    // /v1/categories  -> devuelve iconUrl construido desde app_config.cdn_base
+    // helper: obtiene cdnBase (prioriza env var CDN_BASE, luego DB app_config)
+    const getCdnBase = async () => {
+      const envCdn = (env.CDN_BASE || "").toString().trim();
+      if (envCdn) return envCdn.replace(/\/+$/, "");
+      const cdnRow = await env.DB.prepare("SELECT value FROM app_config WHERE key='cdn_base'").first();
+      const cdnBaseRaw = cdnRow?.value || "";
+      return String(cdnBaseRaw).replace(/\/+$/, "");
+    };
+
+    // helper: obtiene categories_version (string) desde app_config
+    const getCategoriesVersion = async () => {
+      const row = await env.DB.prepare("SELECT value FROM app_config WHERE key='categories_version'").first();
+      return row?.value ? String(row.value) : "0";
+    };
+
+    // /v1/categories
     if (url.pathname === "/v1/categories") {
-      const cacheReq = new Request(url.toString()); // clave válida (URL completa)
+      const cacheReq = new Request(url.toString());
 
       const fetcher = async () => {
-        const cdnRow = await env.DB.prepare("SELECT value FROM app_config WHERE key='cdn_base'").first();
-        const cdnBaseRaw = cdnRow?.value || "";
-        const cdnBase = String(cdnBaseRaw).replace(/\/+$/, ""); // quita slash final
+        const cdnBase = await getCdnBase();
+        const categoriesVersion = await getCategoriesVersion();
 
-        const rs = await env.DB
-          .prepare("SELECT category_id AS id, title, icon_rel_path FROM categories ORDER BY sort_order, title")
+        // Trae categories e intenta leer tones_count si existe
+        const r = await env.DB
+          .prepare("SELECT category_id AS id, title, icon_rel_path, tones_count FROM categories ORDER BY sort_order, title")
           .all();
-        const results = rs?.results || [];
+        const results = r?.results || [];
 
-        const data = results.map(r => {
-          const rel = r.icon_rel_path || null;
+        // Detectar si hay alguna row sin tones_count (null/undefined)
+        let needCounts = false;
+        for (const row of results) {
+          if (row.tones_count === null || typeof row.tones_count === "undefined") {
+            needCounts = true;
+            break;
+          }
+        }
+
+        // Si hace falta, obtener counts con una sola query GROUP BY
+        const countsMap = {};
+        if (needCounts) {
+          const cr = await env.DB.prepare("SELECT category_id, COUNT(*) AS cnt FROM tones GROUP BY category_id").all();
+          const crow = cr?.results || [];
+          for (const c of crow) countsMap[c.category_id] = Number(c.cnt || 0);
+        }
+
+        const data = results.map(row => {
+          const rel = row.icon_rel_path || null;
           let iconUrl = null;
           if (rel) {
-            const relClean = String(rel).replace(/^\/+/, ""); // quita slash inicial
+            const relClean = String(rel).replace(/^\/+/, "");
             iconUrl = cdnBase ? `${cdnBase}/${relClean}` : `/${relClean}`;
           }
+
+          const tonesCount = (row.tones_count !== null && typeof row.tones_count !== "undefined")
+            ? Number(row.tones_count)
+            : (countsMap[row.id] !== undefined ? countsMap[row.id] : 0);
+
           return {
-            id: r.id,
-            title: r.title,
+            id: row.id,
+            title: row.title,
             iconUrl,
+            tonesCount
           };
         });
 
         const first = results.length ? results[0].id : "";
         const last  = results.length ? results[results.length - 1].id : "";
-        const etag  = `"cat-${results.length}-${first}-${last}"`;
+        const etag  = `"cat-${results.length}-${first}-${last}-v${categoriesVersion}"`;
 
         const res = json({ data }, { ttl: 300, etag });
         const h = new Headers(res.headers);
@@ -84,13 +120,11 @@ export default {
         return new Response(res.body, { headers: h, status: 200 });
       };
 
-      if (!bypassCache) {
-        return withCache(cacheReq, fetcher);
-      }
+      if (!bypassCache) return withCache(cacheReq, fetcher);
       return fetcher();
     }
 
-    // /v1/tones?category=annoying&limit=100&offset=0
+    // /v1/tones?category=...&limit=...&offset=...
     if (url.pathname === "/v1/tones") {
       const category = url.searchParams.get("category");
       if (!category) {
@@ -101,26 +135,23 @@ export default {
       const offset = Math.max(Number(url.searchParams.get("offset") || 0), 0);
 
       const fetcher = async () => {
-        const cdn = await env.DB.prepare("SELECT value FROM app_config WHERE key='cdn_base'").first();
-        const cdnBaseRaw = cdn?.value || "";
-        const cdnBase = String(cdnBaseRaw).replace(/\/+$/, "");
+        const cdnBase = await getCdnBase();
 
-        const { results } = await env.DB.prepare(
+        const q = await env.DB.prepare(
           `SELECT tone_id AS id, title, rel_path, requires_attribution AS req_attr, attribution_text, duration_ms
            FROM tones WHERE category_id = ? ORDER BY title LIMIT ? OFFSET ?`
         ).bind(category, limit, offset).all();
 
+        const results = q?.results || [];
+
         const data = results.map(r => {
           const relPath = r.rel_path || null;
-          const urlPath = relPath
-            ? (cdnBase ? `${cdnBase}/${String(relPath).replace(/^\/+/, '')}` : `/${relPath}`)
-            : null;
+          const urlPath = relPath ? (cdnBase ? `${cdnBase}/${String(relPath).replace(/^\/+/, '')}` : `/${relPath}`) : null;
 
           const durationMsRaw = (typeof r.duration_ms !== 'undefined' && r.duration_ms !== null)
             ? Number(r.duration_ms)
             : null;
 
-          // Convertimos a segundos (Number) o null si no hay duration_ms
           const durationSeconds = durationMsRaw !== null ? (durationMsRaw / 1000) : null;
 
           return {
@@ -129,7 +160,7 @@ export default {
             url: urlPath,
             requiresAttribution: !!r.req_attr,
             attributionText: r.attribution_text || null,
-            duration: durationSeconds // segundos (Number), p.ej. 3.456  — o null
+            duration: durationSeconds
           };
         });
 
@@ -143,9 +174,7 @@ export default {
         return new Response(res.body, { headers: h, status: 200 });
       };
 
-      if (bypassCache) {
-        return fetcher();
-      }
+      if (bypassCache) return fetcher();
       return withCache(new Request(url.toString()), fetcher);
     }
 

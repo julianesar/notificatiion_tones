@@ -8,6 +8,7 @@ class ToneModel {
   final String url;
   final bool requiresAttribution;
   final String? attributionText;
+  final double? duration;
 
   const ToneModel({
     required this.id,
@@ -15,6 +16,7 @@ class ToneModel {
     required this.url,
     required this.requiresAttribution,
     this.attributionText,
+    this.duration,
   });
 
   factory ToneModel.fromJson(Map<String, dynamic> json) {
@@ -24,6 +26,9 @@ class ToneModel {
       url: json['url'] as String,
       requiresAttribution: json['requiresAttribution'] as bool? ?? false,
       attributionText: json['attributionText'] as String?,
+      duration: json['duration'] != null
+        ? (json['duration'] as num).toDouble()
+        : null,
     );
   }
 
@@ -34,6 +39,7 @@ class ToneModel {
       'url': url,
       'requiresAttribution': requiresAttribution,
       'attributionText': attributionText,
+      'duration': duration,
     };
   }
 
@@ -44,6 +50,7 @@ class ToneModel {
       url: url,
       requiresAttribution: requiresAttribution,
       attributionText: attributionText,
+      duration: duration,
     );
   }
 
@@ -57,5 +64,5 @@ class ToneModel {
 
   @override
   String toString() =>
-      'ToneModel(id: $id, title: $title, url: $url, requiresAttribution: $requiresAttribution, attributionText: $attributionText)';
+      'ToneModel(id: $id, title: $title, url: $url, requiresAttribution: $requiresAttribution, attributionText: $attributionText, duration: $duration)';
 }

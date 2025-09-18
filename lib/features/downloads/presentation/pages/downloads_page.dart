@@ -226,6 +226,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
             url: download.localPath,
             requiresAttribution: download.requiresAttribution,
             attributionText: download.attributionText,
+            duration: null,
           ),
         )
         .toList();
@@ -386,6 +387,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
       url: download.localPath, // URL apunta al archivo local
       requiresAttribution: download.requiresAttribution,
       attributionText: download.attributionText,
+      duration: null,
     );
 
     Navigator.push(

@@ -158,6 +158,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       url: favorite.url,
       requiresAttribution: favorite.requiresAttribution,
       attributionText: favorite.attributionText,
+      duration: null,
     );
 
     final favoritesProvider = context.read<FavoritesProvider>();
@@ -169,6 +170,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             url: fav.url,
             requiresAttribution: fav.requiresAttribution,
             attributionText: fav.attributionText,
+            duration: null,
           ),
         )
         .toList();

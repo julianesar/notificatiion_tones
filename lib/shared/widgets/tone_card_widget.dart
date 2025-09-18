@@ -11,6 +11,7 @@ class ToneCardWidget extends StatefulWidget {
   final String title;
   final String url;
   final String subtitle;
+  final double? duration;
   final bool? requiresAttribution;
   final String? attributionText;
   final VoidCallback? onTap;
@@ -26,6 +27,7 @@ class ToneCardWidget extends StatefulWidget {
     required this.title,
     required this.url,
     required this.subtitle,
+    this.duration,
     this.requiresAttribution,
     this.attributionText,
     this.onTap,
@@ -40,6 +42,14 @@ class ToneCardWidget extends StatefulWidget {
 
 class _ToneCardWidgetState extends State<ToneCardWidget> {
   bool _isLocalLoading = false;
+
+  String _formatDuration(double seconds) {
+    // Ensure minimum duration of 1 second to avoid showing 00:00
+    final adjustedSeconds = seconds < 1 ? 1.0 : seconds;
+    final minutes = (adjustedSeconds / 60).floor();
+    final remainingSeconds = (adjustedSeconds % 60).round();
+    return '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -110,7 +120,9 @@ class _ToneCardWidgetState extends State<ToneCardWidget> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            widget.subtitle,
+                            widget.duration != null
+                                ? _formatDuration(widget.duration!)
+                                : widget.subtitle,
                             style: TextStyle(
                               fontSize: 14,
                               color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
