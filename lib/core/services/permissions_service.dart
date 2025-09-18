@@ -104,8 +104,7 @@ class PermissionsServiceImpl implements PermissionsService {
   @override
   Future<String> getSystemSettingsPermissionMessage() async {
     if (!Platform.isAndroid) return '';
-    
-    return 'Necesitas activar "Modificar configuración del sistema" para personalizar tonos de llamada, notificaciones y alarmas.\n\n'
-           'Toca "Permitir" para ir a configuración y activar este permiso.';
+
+    return 'Para personalizar tonos necesitas activar "Modificar configuración del sistema" en Configuración.';
   }
 }

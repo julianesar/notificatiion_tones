@@ -75,14 +75,14 @@ class SystemSettingsPermissionDialog extends StatelessWidget {
                 Icon(
                   Icons.info_outline,
                   size: 20,
-                  color: colorScheme.onPrimaryContainer,
+                  color: Colors.white,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     'Una vez que actives el permiso, vuelve a la app para continuar.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onPrimaryContainer,
+                      color: Colors.white,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -111,7 +111,7 @@ class SystemSettingsPermissionDialog extends StatelessWidget {
             backgroundColor: colorScheme.primary,
             foregroundColor: colorScheme.onPrimary,
           ),
-          child: const Text('Ir a Configuración'),
+          child: const Text('Abrir Configuración'),
         ),
       ],
       actionsPadding: const EdgeInsets.only(

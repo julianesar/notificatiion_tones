@@ -248,42 +248,50 @@ class _DownloadsPageState extends State<DownloadsPage> {
           children: [
             Icon(Icons.folder_outlined),
             SizedBox(width: 8),
-            Text('Ubicación de Archivos'),
+            Expanded(
+              child: Text('Ubicación de Archivos'),
+            ),
           ],
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Tus tonos recientes se guardan en:',
-              style: TextStyle(fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceVariant,
-                borderRadius: BorderRadius.circular(8),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Tus tonos recientes se guardan en:',
+                style: TextStyle(fontWeight: FontWeight.w500),
               ),
-              child: Text(
-                provider.storageLocation ?? 'Almacenamiento privado de la app',
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceVariant,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  provider.storageLocation ?? 'Almacenamiento privado de la app',
+                  style: TextStyle(
+                    fontFamily: 'monospace',
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  softWrap: true,
+                  overflow: TextOverflow.visible,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Los archivos se guardan en la carpeta de Descargas del dispositivo para que puedas acceder a ellos fácilmente.',
                 style: TextStyle(
-                  fontFamily: 'monospace',
                   fontSize: 12,
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
+                softWrap: true,
               ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Los archivos se guardan en la carpeta de Descargas del dispositivo para que puedas acceder a ellos fácilmente.',
-              style: TextStyle(
-                fontSize: 12,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
         actions: [
           TextButton(

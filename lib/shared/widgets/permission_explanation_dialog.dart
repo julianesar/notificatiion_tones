@@ -91,15 +91,20 @@ class PermissionExplanationDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: onCancel ?? () => Navigator.of(context).pop(),
-          child: const Text('Cancelar'),
+          child: Text(
+            'Cancelar',
+            style: TextStyle(
+              color: Colors.white,
+            ),
+          ),
         ),
-        ElevatedButton(
+        FilledButton(
           onPressed: onConfirm,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Theme.of(context).primaryColor,
-            foregroundColor: Colors.white,
+          style: FilledButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            foregroundColor: Colors.black,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(24),
             ),
           ),
           child: const Text('Permitir'),

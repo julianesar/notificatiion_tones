@@ -15,28 +15,17 @@ class ThemeConfig {
   static const Color error = Color(0xFFEF4444);
   static const Color snackBar = Color(0xFF171717);
 
-  // Light Theme Colors
-  static const Color primaryLight_theme = primary;
-  static const Color primaryVariantLight = primaryDark;
-  static const Color secondaryLight = secondary;
-  static const Color backgroundLight = Color(0xFFF8FAFC);
-  static const Color surfaceLight = Color(0xFFFFFFFF);
-  static const Color errorLight = error;
-
-  // Dark Theme Colors
-  static const Color primaryDark_theme = primary;
-  static const Color primaryVariantDark = primaryLight;
-  static const Color secondaryDark = secondary;
-  static const Color backgroundDark = backgroundMain;
-  static const Color surfaceDark = cardSurface;
-  static const Color cardDark = cardSurface;
-  static const Color errorDark = Color(0xFFF87171);
+  // Theme Colors (Dark Theme as Default)
+  static const Color primaryTheme = primary;
+  static const Color primaryVariant = primaryLight;
+  static const Color secondaryTheme = secondary;
+  static const Color backgroundTheme = backgroundMain;
+  static const Color surfaceTheme = cardSurface;
+  static const Color errorTheme = Color(0xFFF87171);
 
   // Text Colors
-  static const Color textPrimaryLight = Color(0xFF1F2937);
-  static const Color textSecondaryLight = Color(0xFF6B7280);
-  static const Color textPrimaryDark = importantText;
-  static const Color textSecondaryDark = Color(0xFFB0BEC5);
+  static const Color textPrimary = importantText;
+  static const Color textSecondary = Color(0xFFB0BEC5);
 
   // Audio Player Colors
   static const Color audioPlayerPrimary = primary;
@@ -44,84 +33,26 @@ class ThemeConfig {
   static const Color waveformActive = primary;
   static const Color waveformInactive = Color(0xFFE5E7EB);
 
-  static ThemeData get lightTheme {
-    return ThemeData(
-      useMaterial3: true,
-      brightness: Brightness.light,
-      colorScheme: const ColorScheme.light(
-        primary: primaryLight_theme,
-        secondary: secondaryLight,
-        surface: backgroundLight,
-        error: errorLight,
-        onPrimary: Colors.white,
-        onSecondary: Colors.white,
-        onSurface: textPrimaryLight,
-        onError: Colors.white,
-      ),
-      appBarTheme: const AppBarTheme(
-        elevation: 0,
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.black,
-        iconTheme: IconThemeData(color: Colors.black),
-        systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness: Brightness.dark,
-          statusBarBrightness: Brightness.light,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.zero,
-        ),
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: primaryLight_theme,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      ),
-      cardTheme: CardThemeData(
-        elevation: 0,
-        color: surfaceLight,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: Colors.grey.shade200, width: 1),
-        ),
-      ),
-      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: surfaceLight,
-        selectedItemColor: primaryLight_theme,
-        unselectedItemColor: textSecondaryLight,
-        type: BottomNavigationBarType.fixed,
-        elevation: 8,
-      ),
-    );
-  }
-
-  static ThemeData get darkTheme {
+  static ThemeData get appTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
       colorScheme: const ColorScheme.dark(
-        primary: primaryDark_theme,
-        secondary: secondaryDark,
-        surface: backgroundDark,
-        error: errorDark,
+        primary: primaryTheme,
+        secondary: secondaryTheme,
+        surface: backgroundTheme,
+        error: errorTheme,
         onPrimary: Colors.black,
         onSecondary: Colors.black,
-        onSurface: textPrimaryDark,
+        onSurface: textPrimary,
         onError: Colors.black,
       ),
       appBarTheme: const AppBarTheme(
         elevation: 0,
         centerTitle: true,
         backgroundColor: Colors.transparent,
-        foregroundColor: textPrimaryDark,
-        iconTheme: IconThemeData(color: textPrimaryDark),
+        foregroundColor: textPrimary,
+        iconTheme: IconThemeData(color: textPrimary),
         systemOverlayStyle: SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
           statusBarIconBrightness: Brightness.light,
@@ -133,7 +64,7 @@ class ThemeConfig {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: primaryDark_theme,
+          backgroundColor: primaryTheme,
           foregroundColor: Colors.black,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -144,19 +75,20 @@ class ThemeConfig {
       ),
       cardTheme: CardThemeData(
         elevation: 0,
-        color: cardDark,
+        color: surfaceTheme,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(color: Colors.grey.shade800, width: 1),
         ),
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: surfaceDark,
-        selectedItemColor: primaryDark_theme,
-        unselectedItemColor: textSecondaryDark,
+        backgroundColor: surfaceTheme,
+        selectedItemColor: primaryTheme,
+        unselectedItemColor: textSecondary,
         type: BottomNavigationBarType.fixed,
         elevation: 8,
       ),
     );
   }
+
 }
