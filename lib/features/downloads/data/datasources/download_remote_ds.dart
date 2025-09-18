@@ -3,6 +3,8 @@ import 'dart:typed_data';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 
+import '../../../../core/constants/app_constants.dart';
+
 abstract class DownloadRemoteDataSource {
   Future<Uint8List> downloadFile({
     required String url,
@@ -35,7 +37,7 @@ class DownloadRemoteDataSourceImpl implements DownloadRemoteDataSource {
       
       final uri = Uri.parse(url);
       final request = http.Request('GET', uri);
-      request.headers['User-Agent'] = 'NotificationSounds/1.0.0';
+      request.headers['User-Agent'] = '${AppConstants.appName}/1.0.0';
       
       final streamedResponse = await _client!.send(request);
       
@@ -90,7 +92,7 @@ class DownloadRemoteDataSourceImpl implements DownloadRemoteDataSource {
       final uri = Uri.parse(url);
       final response = await http.head(
         uri,
-        headers: {'User-Agent': 'NotificationSounds/1.0.0'},
+        headers: {'User-Agent': '${AppConstants.appName}/1.0.0'},
       ).timeout(const Duration(seconds: 10));
       
       final contentLength = response.headers['content-length'];

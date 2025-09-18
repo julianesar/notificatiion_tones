@@ -51,7 +51,6 @@ export default {
       const cacheReq = new Request(url.toString()); // clave válida (URL completa)
 
       const fetcher = async () => {
-        // lee cdn_base como haces en /v1/tones
         const cdnRow = await env.DB.prepare("SELECT value FROM app_config WHERE key='cdn_base'").first();
         const cdnBaseRaw = cdnRow?.value || "";
         const cdnBase = String(cdnBaseRaw).replace(/\/+$/, ""); // quita slash final
@@ -61,7 +60,6 @@ export default {
           .all();
         const results = rs?.results || [];
 
-        // construye datos con iconUrl (o null si no hay ruta)
         const data = results.map(r => {
           const rel = r.icon_rel_path || null;
           let iconUrl = null;
@@ -76,7 +74,6 @@ export default {
           };
         });
 
-        // ETag: count + firstId + lastId (seguro sin updated_at)
         const first = results.length ? results[0].id : "";
         const last  = results.length ? results[results.length - 1].id : "";
         const etag  = `"cat-${results.length}-${first}-${last}"`;
@@ -90,7 +87,6 @@ export default {
       if (!bypassCache) {
         return withCache(cacheReq, fetcher);
       }
-      // nocache=1 -> no cache
       return fetcher();
     }
 
@@ -110,17 +106,32 @@ export default {
         const cdnBase = String(cdnBaseRaw).replace(/\/+$/, "");
 
         const { results } = await env.DB.prepare(
-          `SELECT tone_id AS id, title, rel_path, requires_attribution AS req_attr, attribution_text
+          `SELECT tone_id AS id, title, rel_path, requires_attribution AS req_attr, attribution_text, duration_ms
            FROM tones WHERE category_id = ? ORDER BY title LIMIT ? OFFSET ?`
         ).bind(category, limit, offset).all();
 
-        const data = results.map(r => ({
-          id: r.id,
-          title: r.title,
-          url: cdnBase ? `${cdnBase}/${String(r.rel_path).replace(/^\/+/, '')}` : `/${r.rel_path}`,
-          requiresAttribution: !!r.req_attr,
-          attributionText: r.attribution_text || null,
-        }));
+        const data = results.map(r => {
+          const relPath = r.rel_path || null;
+          const urlPath = relPath
+            ? (cdnBase ? `${cdnBase}/${String(relPath).replace(/^\/+/, '')}` : `/${relPath}`)
+            : null;
+
+          const durationMsRaw = (typeof r.duration_ms !== 'undefined' && r.duration_ms !== null)
+            ? Number(r.duration_ms)
+            : null;
+
+          // Convertimos a segundos (Number) o null si no hay duration_ms
+          const durationSeconds = durationMsRaw !== null ? (durationMsRaw / 1000) : null;
+
+          return {
+            id: r.id,
+            title: r.title,
+            url: urlPath,
+            requiresAttribution: !!r.req_attr,
+            attributionText: r.attribution_text || null,
+            duration: durationSeconds // segundos (Number), p.ej. 3.456  — o null
+          };
+        });
 
         const etag = `"tones-${category}-${data.length}-${offset}"`;
         const res = json(
@@ -135,7 +146,6 @@ export default {
       if (bypassCache) {
         return fetcher();
       }
-      // cachea por la URL completa (incluye category/limit/offset)
       return withCache(new Request(url.toString()), fetcher);
     }
 

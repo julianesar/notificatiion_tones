@@ -10,8 +10,8 @@ flutter_native_splash:
   # Configuración específica para Android 12+
   android_12:
     # Imagen del icono (se recortará en círculo)
-    # image: assets/icons/app_icon.png
-    # icon_background_color: "#263238"
+    image: assets/icons/app_icon.png
+    icon_background_color: "#263238"
     color: "#263238"
 
   # Habilitar para todas las plataformas

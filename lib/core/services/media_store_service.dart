@@ -3,6 +3,8 @@ import 'dart:typed_data';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 
+import '../constants/app_constants.dart';
+
 /// Servicio profesional para manejo seguro de archivos de audio
 /// Usa directorios accesibles del sistema para permitir al usuario acceder a sus descargas
 /// Implementa MediaStore para Android 10+ de manera profesional
@@ -56,8 +58,8 @@ class MediaStoreServiceImpl implements MediaStoreService {
   @override
   Future<String> getPublicAudioDirectory() async {
     if (Platform.isAndroid) {
-      // En Android, usamos Downloads/NotificationSounds para acceso público
-      final directory = Directory('/storage/emulated/0/Download/NotificationSounds');
+      // En Android, usamos Downloads/{AppName} para acceso público
+      final directory = Directory('/storage/emulated/0/Download/${AppConstants.appName}');
       if (!await directory.exists()) {
         await directory.create(recursive: true);
       }
@@ -65,7 +67,7 @@ class MediaStoreServiceImpl implements MediaStoreService {
     } else {
       // En iOS, usamos el directorio de documentos
       final docDir = await getApplicationDocumentsDirectory();
-      final audioDir = Directory(path.join(docDir.path, 'NotificationSounds'));
+      final audioDir = Directory(path.join(docDir.path, AppConstants.appName));
       if (!await audioDir.exists()) {
         await audioDir.create(recursive: true);
       }

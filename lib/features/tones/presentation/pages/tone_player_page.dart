@@ -177,10 +177,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
 
   void _showErrorSnackBar(String message) {
     if (mounted) {
-      CustomSnackBar.showError(
-        context,
-        message: message,
-      );
+      CustomSnackBar.showError(context, message: message);
     }
   }
 
@@ -199,7 +196,9 @@ class _TonePlayerPageState extends State<TonePlayerPage>
       if (mounted) {
         CustomSnackBar.show(
           context,
-          message: isNowFavorite ? 'Agregado a favoritos' : 'Eliminado de favoritos',
+          message: isNowFavorite
+              ? 'Agregado a favoritos'
+              : 'Eliminado de favoritos',
           duration: const Duration(seconds: 2),
         );
       }
@@ -789,7 +788,9 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                 decoration: BoxDecoration(
                   color: colorScheme.primaryContainer.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3)),
+                  border: Border.all(
+                    color: colorScheme.primary.withValues(alpha: 0.3),
+                  ),
                 ),
                 child: Row(
                   children: [
@@ -802,10 +803,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                     Expanded(
                       child: Text(
                         'Los cambios se aplicaron inmediatamente. Ya puedes usar tu nuevo tono personalizado.',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                        ),
+                        style: TextStyle(color: Colors.white, fontSize: 14),
                       ),
                     ),
                   ],
@@ -1158,9 +1156,9 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                       ),
                     ),
                     child: Text(
-                      'Establecer como tono',
+                      'Establecer Como Tono',
                       style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.normal,
                         color: colorScheme.onPrimary,
                       ),
                     ),
@@ -1176,10 +1174,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
   }
 
   void _showSnackBar(BuildContext context, String message) {
-    CustomSnackBar.show(
-      context,
-      message: message,
-    );
+    CustomSnackBar.show(context, message: message);
   }
 
   void _showAttributionDialog(BuildContext context) {

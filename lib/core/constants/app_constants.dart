@@ -1,4 +1,7 @@
 class AppConstants {
+  // App Identity
+  static const String appName = 'Notifly';
+
   // API Configuration
   static const String baseUrl = 'https://api.notification-sounds.com';
   static const String apiVersion = 'v1';

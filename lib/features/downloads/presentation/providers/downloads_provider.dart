@@ -10,6 +10,7 @@ import '../../domain/repositories/download_repository.dart';
 import '../../../tones/domain/entities/tone.dart';
 import '../../../../core/services/filename_service.dart';
 import '../../../../core/di/service_locator.dart';
+import '../../../../core/constants/app_constants.dart';
 
 class DownloadsProvider extends ChangeNotifier {
   final DownloadTone _downloadTone;
@@ -44,7 +45,7 @@ class DownloadsProvider extends ChangeNotifier {
   String? get errorMessage => _error;
   bool get hasError => _error != null;
   Set<String> get downloadedToneIds => Set.unmodifiable(_downloadedToneIds);
-  String? get storageLocation => 'Download/NotificationSounds/';
+  String? get storageLocation => 'Download/${AppConstants.appName}/';
 
   bool isDownloading(String toneId) {
     return _initiatingDownloads.contains(toneId) || 
