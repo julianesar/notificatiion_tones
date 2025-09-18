@@ -23,101 +23,107 @@ class _CategoriesPageState extends State<CategoriesPage> {
   @override
   Widget build(BuildContext context) {
     return Consumer<CategoriesProvider>(
-        builder: (context, provider, child) {
-          if (provider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      builder: (context, provider, child) {
+        if (provider.isLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-          if (provider.hasError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    size: 64,
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Error al cargar las categorías',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-                  ),
-                  const SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 32),
-                    child: Text(
-                      provider.errorMessage ?? 'Error desconocido',
-                      style: Theme.of(context).textTheme.bodySmall,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: provider.load,
-                    child: const Text('Reintentar'),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          // ⬇️ Grid de 2 columnas como en code .txt
-          return Column(
-            children: [
-              // Título "Categorías" alineado a la izquierda
-              Padding(
-                padding: const EdgeInsets.only(top: 32, right: 24, left: 24, bottom: 16),
-                child: Align(
-                  alignment: Alignment.centerLeft,
+        if (provider.hasError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  size: 64,
+                  color: Theme.of(context).colorScheme.error,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Error al cargar las categorías',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
                   child: Text(
-                    'Categorías',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    provider.errorMessage ?? 'Error desconocido',
+                    style: Theme.of(context).textTheme.bodySmall,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: provider.load,
+                  child: const Text('Reintentar'),
+                ),
+              ],
+            ),
+          );
+        }
+
+        // ⬇️ Grid de 2 columnas como en code .txt
+        return Column(
+          children: [
+            // Título "Categorías" alineado a la izquierda
+            Padding(
+              padding: const EdgeInsets.only(
+                top: 32,
+                right: 24,
+                left: 24,
+                bottom: 16,
+              ),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Categorías',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
-              // Grid de categorías
-              Expanded(
-                child: RefreshIndicator(
-                  onRefresh: () => provider.load(),
-                  child: GridView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2, // 2 items por fila
-                crossAxisSpacing: 16, // espacio horizontal
-                mainAxisSpacing: 16, // espacio vertical
-                childAspectRatio: 1.2, // proporción similar a code .txt
-              ),
-              itemCount: provider.categories.length,
-              itemBuilder: (context, index) {
-                final category = provider.categories[index];
-                return _CategoryTile(
-                  title: category.title,
-                  categoryId: category.id,
-                  iconUrl: category.iconUrl,
-                  onTap: () {
-                    // Navega a la lista de tonos de la categoría
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => TonesPage(
-                          categoryId: category.id,
-                          title: category.title,
-                        ),
-                      ),
+            ),
+            // Grid de categorías
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () => provider.load(),
+                child: GridView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2, // 2 items por fila
+                    crossAxisSpacing: 16, // espacio horizontal
+                    mainAxisSpacing: 16, // espacio vertical
+                    childAspectRatio: 1.2, // proporción similar a code .txt
+                  ),
+                  itemCount: provider.categories.length,
+                  itemBuilder: (context, index) {
+                    final category = provider.categories[index];
+                    return _CategoryTile(
+                      title: category.title,
+                      categoryId: category.id,
+                      iconUrl: category.iconUrl,
+                      tonesCount: category.tonesCount,
+                      onTap: () {
+                        // Navega a la lista de tonos de la categoría
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => TonesPage(
+                              categoryId: category.id,
+                              title: category.title,
+                            ),
+                          ),
+                        );
+                      },
                     );
                   },
-                );
-              },
-            ),
                 ),
               ),
-            ],
-          );
-        },
-      );
+            ),
+          ],
+        );
+      },
+    );
   }
 }
 
@@ -126,15 +132,16 @@ class _CategoryTile extends StatelessWidget {
   final String title;
   final String categoryId;
   final String? iconUrl;
+  final int tonesCount;
   final VoidCallback onTap;
 
   const _CategoryTile({
     required this.title,
     required this.categoryId,
     this.iconUrl,
+    required this.tonesCount,
     required this.onTap,
   });
-
 
   @override
   Widget build(BuildContext context) {
@@ -144,10 +151,22 @@ class _CategoryTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.4),
-            blurRadius: 10,
-            offset: const Offset(0, 6),
-            spreadRadius: -3,
+            color: Colors.black.withOpacity(0.09),
+            blurRadius: 1,
+            offset: const Offset(0, 4),
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.07),
+            blurRadius: 1,
+            offset: const Offset(-2, 2),
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.07),
+            blurRadius: 1,
+            offset: const Offset(2, 2),
+            spreadRadius: 0,
           ),
         ],
       ),
@@ -159,11 +178,7 @@ class _CategoryTile extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CategoryIcon(
-                iconUrl: iconUrl,
-                title: title,
-                size: 40,
-              ),
+              CategoryIcon(iconUrl: iconUrl, title: title, size: 40),
               const SizedBox(height: 8),
               Text(
                 title,
@@ -174,6 +189,18 @@ class _CategoryTile extends StatelessWidget {
                   color: Theme.of(context).textTheme.bodyLarge?.color,
                 ),
                 maxLines: 2,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '$tonesCount ${tonesCount == 1 ? 'tono' : 'tonos'}',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400,
+                  color: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.color?.withOpacity(0.7),
+                ),
               ),
             ],
           ),

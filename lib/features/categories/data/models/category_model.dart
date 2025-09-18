@@ -6,11 +6,13 @@ class CategoryModel {
   final String id;
   final String title;
   final String? iconUrl;
+  final int tonesCount;
 
   const CategoryModel({
     required this.id,
     required this.title,
     this.iconUrl,
+    this.tonesCount = 0,
   });
 
   factory CategoryModel.fromJson(Map<String, dynamic> json) {
@@ -18,6 +20,7 @@ class CategoryModel {
       id: json['id'] as String,
       title: json['title'] as String,
       iconUrl: json['iconUrl'] as String?,
+      tonesCount: json['tonesCount'] as int? ?? 0,
     );
   }
 
@@ -26,6 +29,7 @@ class CategoryModel {
       'id': id,
       'title': title,
       'iconUrl': iconUrl,
+      'tonesCount': tonesCount,
     };
   }
 
@@ -34,6 +38,7 @@ class CategoryModel {
       id: id,
       title: title,
       iconUrl: iconUrl,
+      tonesCount: tonesCount,
     );
   }
 
@@ -48,5 +53,5 @@ class CategoryModel {
   int get hashCode => id.hashCode;
 
   @override
-  String toString() => 'CategoryModel(id: $id, title: $title, iconUrl: $iconUrl)';
+  String toString() => 'CategoryModel(id: $id, title: $title, iconUrl: $iconUrl, tonesCount: $tonesCount)';
 }

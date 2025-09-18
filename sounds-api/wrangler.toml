@@ -11,10 +11,3 @@ CDN_BASE = "https://notificationsounds.mobapps.site"
 binding = "DB"
 database_name = "notification_sounds_db"
 database_id = "42233076-9b21-421c-97ae-464a581d7a75"
-
-# Entorno "production" — define la route para tu dominio personalizado
-[env.production]
-# Si tu equipo usa zone_name, inclúyelo (ayuda a wrangler a gestionar la route).
-# Ajusta zone_name si tu dominio real es distinto.
-routes = ["api.notificationsounds.mobapps.site/*"]
-zone_name = "mobapps.site"

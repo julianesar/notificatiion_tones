@@ -960,6 +960,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                     final duration = audioService.duration ?? Duration.zero;
                     final position = audioService.position;
                     final progress = audioService.progress;
+                    final isCurrentlyPlaying = audioService.isTonePlaying(_currentTone.id);
 
                     return Column(
                       children: [
@@ -994,13 +995,19 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                audioService.formatDuration(position),
+                                isCurrentlyPlaying && duration.inMilliseconds > 0
+                                    ? audioService.formatDuration(position)
+                                    : '00:00',
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: colorScheme.onSurfaceVariant,
                                 ),
                               ),
                               Text(
-                                audioService.formatDuration(duration),
+                                isCurrentlyPlaying && duration.inMilliseconds > 0
+                                    ? audioService.formatDuration(duration)
+                                    : _currentTone.duration != null
+                                        ? audioService.formatDuration(Duration(seconds: _currentTone.duration!.toInt()))
+                                        : '00:00',
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: colorScheme.onSurfaceVariant,
                                 ),

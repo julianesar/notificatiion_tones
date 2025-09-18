@@ -37,7 +37,7 @@ export default {
       return new Response(null, { headers: corsHeaders(origin) });
     }
 
-    // Salud
+    // Health
     if (url.pathname === "/v1/health") {
       return new Response("ok", { headers: corsHeaders(origin) });
     }
@@ -48,15 +48,17 @@ export default {
     const getCdnBase = async () => {
       const envCdn = (env.CDN_BASE || "").toString().trim();
       if (envCdn) return envCdn.replace(/\/+$/, "");
-      const cdnRow = await env.DB.prepare("SELECT value FROM app_config WHERE key='cdn_base'").first();
-      const cdnBaseRaw = cdnRow?.value || "";
+      const row = await env.DB.prepare("SELECT value FROM app_config WHERE key='cdn_base'").first();
+      const cdnBaseRaw = row?.value || "";
       return String(cdnBaseRaw).replace(/\/+$/, "");
     };
 
-    // helper: obtiene categories_version (string) desde app_config
-    const getCategoriesVersion = async () => {
+    // helper: intenta obtener categories_version; retorna null si no existe
+    const getCategoriesVersionIfPresent = async () => {
       const row = await env.DB.prepare("SELECT value FROM app_config WHERE key='categories_version'").first();
-      return row?.value ? String(row.value) : "0";
+      if (!row || typeof row.value === "undefined" || row.value === null) return null;
+      const s = String(row.value).trim();
+      return s === "" ? null : s;
     };
 
     // /v1/categories
@@ -65,7 +67,7 @@ export default {
 
       const fetcher = async () => {
         const cdnBase = await getCdnBase();
-        const categoriesVersion = await getCategoriesVersion();
+        const categoriesVersion = await getCategoriesVersionIfPresent(); // may be null
 
         // Trae categories e intenta leer tones_count si existe
         const r = await env.DB
@@ -90,6 +92,7 @@ export default {
           for (const c of crow) countsMap[c.category_id] = Number(c.cnt || 0);
         }
 
+        // Construye el payload
         const data = results.map(row => {
           const rel = row.icon_rel_path || null;
           let iconUrl = null;
@@ -110,9 +113,21 @@ export default {
           };
         });
 
-        const first = results.length ? results[0].id : "";
-        const last  = results.length ? results[results.length - 1].id : "";
-        const etag  = `"cat-${results.length}-${first}-${last}-v${categoriesVersion}"`;
+        // Si categoriesVersion existe, construimos ETag y soportamos If-None-Match => 304
+        let etag = null;
+        if (categoriesVersion !== null) {
+          const first = results.length ? results[0].id : "";
+          const last  = results.length ? results[results.length - 1].id : "";
+          etag = `"cat-${results.length}-${first}-${last}-v${categoriesVersion}"`;
+
+          const ifNoneMatch = request.headers.get("If-None-Match");
+          if (ifNoneMatch && ifNoneMatch === etag) {
+            // responder 304 con CORS headers
+            const headers = corsHeaders(origin);
+            headers["etag"] = etag;
+            return new Response(null, { status: 304, headers });
+          }
+        }
 
         const res = json({ data }, { ttl: 300, etag });
         const h = new Headers(res.headers);

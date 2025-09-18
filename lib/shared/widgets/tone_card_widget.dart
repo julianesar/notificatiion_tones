@@ -61,17 +61,30 @@ class _ToneCardWidgetState extends State<ToneCardWidget> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.4),
-            blurRadius: 10,
-            offset: const Offset(0, 6),
-            spreadRadius: -3,
+            color: Colors.black.withOpacity(0.09),
+            blurRadius: 1,
+            offset: const Offset(0, 4),
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.07),
+            blurRadius: 1,
+            offset: const Offset(-2, 2),
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.07),
+            blurRadius: 1,
+            offset: const Offset(2, 2),
+            spreadRadius: 0,
           ),
         ],
       ),
       child: Consumer<AudioService>(
         builder: (context, audioService, child) {
           final isPlaying = audioService.isTonePlaying(widget.toneId);
-          final isAudioLoading = _isLocalLoading ||
+          final isAudioLoading =
+              _isLocalLoading ||
               (audioService.isLoading &&
                   audioService.currentlyPlayingId == widget.toneId);
 
@@ -115,7 +128,9 @@ class _ToneCardWidgetState extends State<ToneCardWidget> {
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 16,
-                              color: Theme.of(context).textTheme.bodyLarge?.color,
+                              color: Theme.of(
+                                context,
+                              ).textTheme.bodyLarge?.color,
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -125,14 +140,17 @@ class _ToneCardWidgetState extends State<ToneCardWidget> {
                                 : widget.subtitle,
                             style: TextStyle(
                               fontSize: 14,
-                              color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
+                              color: Theme.of(
+                                context,
+                              ).textTheme.bodyMedium?.color?.withOpacity(0.7),
                             ),
                           ),
                         ],
                       ),
                     ),
                   ),
-                  if (widget.showDeleteButtonInTrailing && widget.onDelete != null)
+                  if (widget.showDeleteButtonInTrailing &&
+                      widget.onDelete != null)
                     IconButton(
                       onPressed: () {
                         HapticFeedback.mediumImpact();
@@ -189,15 +207,9 @@ class _ToneCardWidgetState extends State<ToneCardWidget> {
     }
   }
 
-
-
   void _showSnackBar(BuildContext context, String message) {
-    CustomSnackBar.show(
-      context,
-      message: message,
-    );
+    CustomSnackBar.show(context, message: message);
   }
-
 
   void _showErrorSnackBar(BuildContext context, String message) {
     CustomSnackBar.showError(
@@ -206,5 +218,4 @@ class _ToneCardWidgetState extends State<ToneCardWidget> {
       duration: const Duration(seconds: 3),
     );
   }
-
 }
