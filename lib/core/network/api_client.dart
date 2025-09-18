@@ -71,6 +71,7 @@ class ApiClient {
     String path, {
     Map<String, String>? query,
     String? cacheKey,
+    Duration? customTtl,
   }) async {
     // Construir URI usando AppConfig.I().baseUrl
     final baseUri = Uri.parse(AppConfig.I().baseUrl);
@@ -89,23 +90,25 @@ class ApiClient {
       if (cachedData != null && cachedTimestamp != null) {
         final cacheAge =
             DateTime.now().millisecondsSinceEpoch - cachedTimestamp;
-        final isExpired = cacheAge > AppConfig.I().cacheTtl.inMilliseconds;
+
+        // Usar TTL personalizado o determinarlo por endpoint
+        final effectiveTtl = customTtl ?? AppConfig.I().getCacheTtlForEndpoint(path);
+        final isExpired = cacheAge > effectiveTtl.inMilliseconds;
 
         if (!isExpired) {
-          _log('Cache hit for $cacheKey (age: ${cacheAge}ms)');
+          _log('Cache hit for $cacheKey (age: ${cacheAge}ms, TTL: ${effectiveTtl.inMinutes}min)');
           final jsonData = jsonDecode(cachedData) as Map<String, dynamic>;
 
           // Refrescar en background si el caché está próximo a expirar (75% de TTL)
-          final shouldRefresh =
-              cacheAge > (AppConfig.I().cacheTtl.inMilliseconds * 0.75);
+          final shouldRefresh = cacheAge > (effectiveTtl.inMilliseconds * 0.75);
           if (shouldRefresh) {
-            _log('Background refresh for $cacheKey');
+            _log('Background refresh for $cacheKey (age: ${(cacheAge / 60000).toStringAsFixed(1)}min)');
             _refreshInBackground(uri, cacheKey);
           }
 
           return jsonData;
         } else {
-          _log('Cache expired for $cacheKey (age: ${cacheAge}ms)');
+          _log('Cache expired for $cacheKey (age: ${(cacheAge / 60000).toStringAsFixed(1)}min, TTL: ${effectiveTtl.inMinutes}min)');
         }
       } else {
         _log('No cache found for $cacheKey');

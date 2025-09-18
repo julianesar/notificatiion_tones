@@ -960,7 +960,9 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                     final duration = audioService.duration ?? Duration.zero;
                     final position = audioService.position;
                     final progress = audioService.progress;
-                    final isCurrentlyPlaying = audioService.isTonePlaying(_currentTone.id);
+                    final isCurrentlyPlaying = audioService.isTonePlaying(
+                      _currentTone.id,
+                    );
 
                     return Column(
                       children: [
@@ -995,7 +997,8 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                isCurrentlyPlaying && duration.inMilliseconds > 0
+                                isCurrentlyPlaying &&
+                                        duration.inMilliseconds > 0
                                     ? audioService.formatDuration(position)
                                     : '00:00',
                                 style: theme.textTheme.bodySmall?.copyWith(
@@ -1003,11 +1006,17 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                                 ),
                               ),
                               Text(
-                                isCurrentlyPlaying && duration.inMilliseconds > 0
+                                isCurrentlyPlaying &&
+                                        duration.inMilliseconds > 0
                                     ? audioService.formatDuration(duration)
                                     : _currentTone.duration != null
-                                        ? audioService.formatDuration(Duration(seconds: _currentTone.duration!.toInt()))
-                                        : '00:00',
+                                    ? audioService.formatDuration(
+                                        Duration(
+                                          seconds: _currentTone.duration!
+                                              .toInt(),
+                                        ),
+                                      )
+                                    : '00:00',
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: colorScheme.onSurfaceVariant,
                                 ),
@@ -1165,7 +1174,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                     child: Text(
                       'Establecer Como Tono',
                       style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.normal,
+                        fontWeight: FontWeight.bold,
                         color: colorScheme.onPrimary,
                       ),
                     ),

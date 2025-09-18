@@ -75,14 +75,14 @@ class ContactsPermissionDialog extends StatelessWidget {
                 Icon(
                   Icons.security,
                   size: 20,
-                  color: colorScheme.onPrimaryContainer,
+                  color: Colors.white,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     'Tu información de contactos se mantiene privada y solo se usa para asignar tonos personalizados.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onPrimaryContainer,
+                      color: Colors.white,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
