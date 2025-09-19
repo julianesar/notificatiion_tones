@@ -46,7 +46,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
   int _currentIndex = 0;
   bool _isLocalLoading = false;
   bool _pendingConfigurationModal = false;
-  double _volumeLevel = 0.5; // Inicializar en el centro
+  double _volumeLevel = 1.0; // Siempre iniciar en 100%
 
   @override
   void initState() {
@@ -61,7 +61,6 @@ class _TonePlayerPageState extends State<TonePlayerPage>
     // Status bar style is now configured globally
 
     _initializeFavoriteStatus();
-    _loadSavedVolume();
 
     // Initialize volume
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -79,29 +78,6 @@ class _TonePlayerPageState extends State<TonePlayerPage>
         favoritesProvider.checkFavoriteStatus(_currentTone.id);
       }
     });
-  }
-
-  Future<void> _loadSavedVolume() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final savedVolume = prefs.getDouble('volume_level');
-      if (savedVolume != null && mounted) {
-        setState(() {
-          _volumeLevel = savedVolume;
-        });
-      }
-    } catch (e) {
-      print('Error loading saved volume: $e');
-    }
-  }
-
-  Future<void> _saveVolume(double volume) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setDouble('volume_level', volume);
-    } catch (e) {
-      print('Error saving volume: $e');
-    }
   }
 
   @override
@@ -918,11 +894,11 @@ class _TonePlayerPageState extends State<TonePlayerPage>
             ),
             child: Column(
               children: [
-                const SizedBox(height: 24),
+                const SizedBox(height: 8),
                 // Musical Note Icon with background - matching reference image
                 LayoutBuilder(
                   builder: (context, constraints) {
-                    final size = (constraints.maxWidth * 0.7).clamp(
+                    final size = (constraints.maxWidth * 0.55).clamp(
                       200.0,
                       280.0,
                     );
@@ -948,7 +924,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                       child: Center(
                         child: Icon(
                           Icons.notifications_active,
-                          size: size * 0.4,
+                          size: size * 0.35,
                           color: context.iconPrimary,
                         ),
                       ),
@@ -1109,7 +1085,6 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                                         _volumeLevel = value;
                                       });
                                       audioService.setVolume(value);
-                                      _saveVolume(value);
                                     },
                                   ),
                                 ),

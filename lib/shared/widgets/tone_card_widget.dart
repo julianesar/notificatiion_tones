@@ -80,32 +80,36 @@ class _ToneCardWidgetState extends State<ToneCardWidget> {
           ),
         ],
       ),
-      child: Consumer<AudioService>(
-        builder: (context, audioService, child) {
-          final isPlaying = audioService.isTonePlaying(widget.toneId);
-          final isAudioLoading =
-              _isLocalLoading ||
-              (audioService.isLoading &&
-                  audioService.currentlyPlayingId == widget.toneId);
+      child: Material(
+        color: Colors.transparent,
+        child: Consumer<AudioService>(
+          builder: (context, audioService, child) {
+            final isPlaying = audioService.isTonePlaying(widget.toneId);
+            final isAudioLoading =
+                _isLocalLoading ||
+                (audioService.isLoading &&
+                    audioService.currentlyPlayingId == widget.toneId);
 
-          // Clear local loading when audio starts playing
-          if (isPlaying && _isLocalLoading) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) {
-                setState(() {
-                  _isLocalLoading = false;
-                });
-              }
-            });
-          }
+            // Clear local loading when audio starts playing
+            if (isPlaying && _isLocalLoading) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  setState(() {
+                    _isLocalLoading = false;
+                  });
+                }
+              });
+            }
 
-          return InkWell(
-            onTap: () => _openFullScreenPlayer(context),
-            borderRadius: BorderRadius.circular(16),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
+            return InkWell(
+              onTap: () => _openFullScreenPlayer(context),
+              borderRadius: BorderRadius.circular(16),
+              splashColor: Theme.of(context).primaryColor.withOpacity(0.25),
+              highlightColor: Theme.of(context).primaryColor.withOpacity(0.12),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
                   PlayStopButton(
                     key: ValueKey('${widget.toneId}_button'),
                     isPlaying: isPlaying,
@@ -161,12 +165,21 @@ class _ToneCardWidgetState extends State<ToneCardWidget> {
                       color: context.iconTrashRed,
                     )
                   else
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      child: Icon(
-                        Icons.chevron_right,
-                        color: context.iconDisabled,
-                        size: 20,
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () => _openFullScreenPlayer(context),
+                        borderRadius: BorderRadius.circular(12),
+                        splashColor: Theme.of(context).primaryColor.withOpacity(0.2),
+                        highlightColor: Theme.of(context).primaryColor.withOpacity(0.1),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Icon(
+                            Icons.chevron_right,
+                            color: context.iconDisabled,
+                            size: 20,
+                          ),
+                        ),
                       ),
                     ),
                 ],
@@ -174,6 +187,7 @@ class _ToneCardWidgetState extends State<ToneCardWidget> {
             ),
           );
         },
+        ),
       ),
     );
   }

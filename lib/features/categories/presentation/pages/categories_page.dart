@@ -62,65 +62,73 @@ class _CategoriesPageState extends State<CategoriesPage> {
           );
         }
 
-        // ⬇️ Grid de 2 columnas como en code .txt
-        return Column(
-          children: [
-            // Título "Categorías" alineado a la izquierda
-            Padding(
-              padding: const EdgeInsets.only(
-                top: 32,
-                right: 24,
-                left: 24,
-                bottom: 16,
-              ),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Categorías',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+        // ⬇️ Grid de 2 columnas con título scrollable
+        return RefreshIndicator(
+          onRefresh: () => provider.load(),
+          child: CustomScrollView(
+            slivers: [
+              // Título "Categorías" como sliver
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    top: 24,
+                    right: 24,
+                    left: 24,
+                    bottom: 16,
+                  ),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Categorías',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
-            // Grid de categorías
-            Expanded(
-              child: RefreshIndicator(
-                onRefresh: () => provider.load(),
-                child: GridView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
+              // Grid de categorías como sliver
+              SliverPadding(
+                padding: const EdgeInsets.only(
+                  left: 24,
+                  right: 24,
+                  bottom: 50,
+                ),
+                sliver: SliverGrid(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2, // 2 items por fila
                     crossAxisSpacing: 16, // espacio horizontal
                     mainAxisSpacing: 16, // espacio vertical
-                    childAspectRatio: 1.2, // proporción similar a code .txt
+                    childAspectRatio: 1.0, // altura aumentada para evitar overflow
                   ),
-                  itemCount: provider.categories.length,
-                  itemBuilder: (context, index) {
-                    final category = provider.categories[index];
-                    return _CategoryTile(
-                      title: category.title,
-                      categoryId: category.id,
-                      iconUrl: category.iconUrl,
-                      tonesCount: category.tonesCount,
-                      onTap: () {
-                        // Navega a la lista de tonos de la categoría
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => TonesPage(
-                              categoryId: category.id,
-                              title: category.title,
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final category = provider.categories[index];
+                      return _CategoryTile(
+                        title: category.title,
+                        categoryId: category.id,
+                        iconUrl: category.iconUrl,
+                        tonesCount: category.tonesCount,
+                        onTap: () {
+                          // Navega a la lista de tonos de la categoría
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => TonesPage(
+                                categoryId: category.id,
+                                title: category.title,
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    );
-                  },
+                          );
+                        },
+                      );
+                    },
+                    childCount: provider.categories.length,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       },
     );
@@ -147,7 +155,6 @@ class _CategoryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -170,39 +177,45 @@ class _CategoryTile extends StatelessWidget {
           ),
         ],
       ),
-      child: InkWell(
-        onTap: onTap,
+      child: Material(
+        color: Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CategoryIcon(iconUrl: iconUrl, title: title, size: 40),
-              const SizedBox(height: 8),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Theme.of(context).textTheme.bodyLarge?.color,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          splashColor: Theme.of(context).primaryColor.withOpacity(0.3),
+          highlightColor: Theme.of(context).primaryColor.withOpacity(0.15),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CategoryIcon(iconUrl: iconUrl, title: title, size: 40),
+                const SizedBox(height: 8),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                  ),
+                  maxLines: 2,
                 ),
-                maxLines: 2,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '$tonesCount ${tonesCount == 1 ? 'tono' : 'tonos'}',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w400,
-                  color: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.color?.withOpacity(0.7),
+                const SizedBox(height: 4),
+                Text(
+                  '$tonesCount ${tonesCount == 1 ? 'tono' : 'tonos'}',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
+                    color: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.color?.withOpacity(0.7),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
