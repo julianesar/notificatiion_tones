@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/entities/tone.dart';
 import '../../../../core/services/audio_service.dart';
 import '../../../../core/services/download_flow_service.dart';
@@ -45,6 +46,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
   int _currentIndex = 0;
   bool _isLocalLoading = false;
   bool _pendingConfigurationModal = false;
+  double _volumeLevel = 0.5; // Inicializar en el centro
 
   @override
   void initState() {
@@ -59,6 +61,15 @@ class _TonePlayerPageState extends State<TonePlayerPage>
     // Status bar style is now configured globally
 
     _initializeFavoriteStatus();
+    _loadSavedVolume();
+
+    // Initialize volume
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final audioService = context.read<AudioService>();
+        audioService.setVolume(_volumeLevel);
+      }
+    });
   }
 
   void _initializeFavoriteStatus() {
@@ -68,6 +79,29 @@ class _TonePlayerPageState extends State<TonePlayerPage>
         favoritesProvider.checkFavoriteStatus(_currentTone.id);
       }
     });
+  }
+
+  Future<void> _loadSavedVolume() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedVolume = prefs.getDouble('volume_level');
+      if (savedVolume != null && mounted) {
+        setState(() {
+          _volumeLevel = savedVolume;
+        });
+      }
+    } catch (e) {
+      print('Error loading saved volume: $e');
+    }
+  }
+
+  Future<void> _saveVolume(double volume) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setDouble('volume_level', volume);
+    } catch (e) {
+      print('Error saving volume: $e');
+    }
   }
 
   @override
@@ -936,7 +970,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                         letterSpacing: -0.5,
                       ),
                       textAlign: TextAlign.center,
-                      maxLines: 2,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 8),
@@ -948,6 +982,8 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                         color: colorScheme.onSurfaceVariant,
                       ),
                       textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
@@ -976,9 +1012,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                               overlayRadius: 12,
                             ),
                             activeTrackColor: colorScheme.primary,
-                            inactiveTrackColor: colorScheme
-                                .surfaceContainerHighest
-                                .withValues(alpha: 0.3),
+                            inactiveTrackColor: const Color(0xFF4A555A),
                             thumbColor: colorScheme.primary,
                             overlayColor: colorScheme.primary.withValues(
                               alpha: 0.1,
@@ -1030,6 +1064,70 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                 ),
 
                 const SizedBox(height: 16),
+
+                // Volume Slider
+                Consumer<AudioService>(
+                  builder: (context, audioService, child) {
+                    return Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.volume_down,
+                                size: 20,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                              Expanded(
+                                child: SliderTheme(
+                                  data: SliderTheme.of(context).copyWith(
+                                    trackHeight: 1.5,
+                                    thumbShape: const RoundSliderThumbShape(
+                                      enabledThumbRadius: 6,
+                                    ),
+                                    overlayShape: const RoundSliderOverlayShape(
+                                      overlayRadius: 10,
+                                    ),
+                                    activeTrackColor: const Color(
+                                      0xFFFF7043,
+                                    ), // Creative Orange
+                                    inactiveTrackColor: const Color(0xFF4A555A),
+                                    thumbColor: const Color(
+                                      0xFFFF7043,
+                                    ), // Creative Orange
+                                    overlayColor: const Color(
+                                      0xFFFF7043,
+                                    ).withValues(alpha: 0.1),
+                                  ),
+                                  child: Slider(
+                                    value: _volumeLevel,
+                                    min: 0.25,
+                                    max: 1.0,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _volumeLevel = value;
+                                      });
+                                      audioService.setVolume(value);
+                                      _saveVolume(value);
+                                    },
+                                  ),
+                                ),
+                              ),
+                              Icon(
+                                Icons.volume_up,
+                                size: 20,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+
+                const SizedBox(height: 24),
 
                 // Control Buttons
                 Row(
@@ -1110,7 +1208,9 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                         return IconButton(
                           onPressed: _toggleFavorite,
                           icon: Icon(
-                            isFavorite ? Icons.favorite : Icons.favorite_border,
+                            isFavorite
+                                ? Icons.favorite
+                                : Icons.favorite_border_rounded,
                             size: 28,
                             color: isFavorite
                                 ? context.iconFavoriteActive
@@ -1144,7 +1244,7 @@ class _TonePlayerPageState extends State<TonePlayerPage>
                         }
                       },
                       icon: Icon(
-                        Icons.share_outlined,
+                        Icons.share_rounded,
                         size: 28,
                         color: context.iconSecondary,
                       ),

@@ -30,7 +30,7 @@ extension AppIconColorsExtension on BuildContext {
   Color get iconSecondary => AppIconColors.secondary(this);
   Color get iconDisabled => AppIconColors.disabled(this);
   Color get iconOnPrimary => AppIconColors.onPrimary(this);
-  Color get iconFavoriteActive => AppIconColors.favoriteActive;
+  Color get iconFavoriteActive => AppIconColors.primary(this);
   Color get iconAppRed => AppIconColors.appRed;
   Color get iconTrashRed => AppIconColors.trashRed;
   Color get iconBlack => AppIconColors.iconBlack(this);
