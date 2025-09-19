@@ -43,7 +43,7 @@ class DownloadFlowService {
           duration: const Duration(seconds: 6),
           action: SnackBarAction(
             label: 'Ver',
-            textColor: Colors.black,
+            textColor: ThemeConfig.primary,
             onPressed: () {
               print('DownloadFlow: Botón "Ver" presionado, intentando navegar...');
               NavigationService.instance.navigateToDownloads();
@@ -178,7 +178,7 @@ class DownloadFlowService {
             duration: const Duration(seconds: 8),
             action: SnackBarAction(
               label: 'Ver',
-              textColor: Colors.black,
+              textColor: ThemeConfig.primary,
               onPressed: () {
                 print('DownloadFlow: Segundo botón "Ver" presionado, intentando navegar...');
                 NavigationService.instance.navigateToDownloads();
@@ -201,7 +201,7 @@ class DownloadFlowService {
               duration: const Duration(seconds: 4),
               action: SnackBarAction(
                 label: 'Ver',
-                textColor: Colors.black,
+                textColor: ThemeConfig.primary,
                 onPressed: () {
                   NavigationService.instance.navigateToDownloads();
                 },
@@ -333,7 +333,7 @@ class DownloadFlowService {
         ),
         action: SnackBarAction(
           label: 'Configuración',
-          textColor: Colors.black,
+          textColor: ThemeConfig.primary,
           onPressed: () {
             // TODO: Abrir configuración de la app
           },
@@ -356,7 +356,7 @@ class DownloadFlowService {
       duration: const Duration(seconds: 6),
       action: SnackBarAction(
         label: 'Configuración',
-        textColor: Colors.black,
+        textColor: ThemeConfig.primary,
         onPressed: () {
           // TODO: Abrir configuración de la app
         },
